@@ -1,4 +1,4 @@
-package main
+package database
 
 import (
 	"database/sql"
@@ -64,7 +64,7 @@ CREATE TABLE IF NOT EXISTS comment_reactions (
 );
 `
 
-func openDB() (*sql.DB, error) {
+func OpenDB() (*sql.DB, error) {
 	db, err := sql.Open("sqlite3", "forum.db?_foreign_keys=on")
 	if err != nil {
 		return nil, err
