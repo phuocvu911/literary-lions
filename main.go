@@ -20,16 +20,20 @@ type App struct {
 }
 
 func main() {
+	//open db
 	db, err := database.OpenDB()
 	if err != nil {
 		log.Fatalf("err open database: %v", err)
 	}
 	defer db.Close()
 
+	//parse templates
 	templates, err := parseTemplates()
 	if err != nil {
 		log.Fatalf("err parse templates: %v", err)
 	}
+
+	//initialize app
 	app := &App{
 		db:        db,
 		templates: templates,
@@ -38,18 +42,19 @@ func main() {
 	mux := http.NewServeMux()
 	//register endpoints here
 
+	//serve css
 	static, err := fs.Sub(webFS, "internal/web/static")
 	if err != nil {
 		log.Fatal(err)
 	}
 	mux.Handle("GET /static/", http.StripPrefix("/static/", http.FileServerFS(static)))
 
+	//start server
 	log.Printf("Literary Lions forum listening on http://localhost:8080")
 	log.Fatal(http.ListenAndServe(":8080", mux))
 }
 
-// parseTemplates builds one template set per page, each composed with the
-// shared base layout.
+// parseTemplates builds one template set per page, each composed with the shared base layout.
 func parseTemplates() (map[string]*template.Template, error) {
 	//take all the html files in the pages  folder
 	pages, err := fs.Glob(webFS, "internal/web/templates/pages/*.html")
@@ -70,7 +75,7 @@ func parseTemplates() (map[string]*template.Template, error) {
 	return templates, nil
 }
 
-// render executes a page template with shared data (current user) merged in.
+// render executes a page template.
 func (app *App) render(w http.ResponseWriter, page string, data any) {
 	t, ok := app.templates[page]
 	if !ok {
