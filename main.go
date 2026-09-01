@@ -38,7 +38,7 @@ func main() {
 	mux := http.NewServeMux()
 	//register endpoints here
 
-	static, err := fs.Sub(webFS, "web/static")
+	static, err := fs.Sub(webFS, "internal/web/static")
 	if err != nil {
 		log.Fatal(err)
 	}
