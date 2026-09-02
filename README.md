@@ -27,7 +27,7 @@ Agree together, in one sitting, before writing code:
 Each person owns one backend domain end-to-end — DB, handlers, own
 templates/CSS for their pages, and their own Dockerfile.
  
-### Person A — Auth & Sessions (me?)
+### Person A — Auth & Sessions (Hoang)
 *Critical path: B and C's handlers depend on this, so ship a stub early.*
  
 - DB schema + migrations for `users` / `sessions` (drives the ERD)
@@ -36,7 +36,7 @@ templates/CSS for their pages, and their own Dockerfile.
 - Auth middleware (context-based user lookup) exposed as a reusable helper
 - Templates/CSS for: register, login, profile/nav auth state
 - Own Dockerfile (see Docker below)
-### Person B — Posts, Comments & Categories
+### Person B — Posts, Comments & Categories (Xinyu)
  
 - `posts` / `comments` / `categories` tables + at least one CREATE, INSERT,
   and SELECT query
@@ -45,7 +45,7 @@ templates/CSS for their pages, and their own Dockerfile.
 - Templates/CSS for: post list, single post + comments, new-post form
 - A search feature
 - Own Dockerfile (see Docker below)
-### Person C — Likes & Filtering
+### Person C — Likes & Filtering (Aman)
  
 - Like/dislike tables + handlers, vote counts shown on display
 - Filter by category / created posts / liked posts (built on A's auth +
