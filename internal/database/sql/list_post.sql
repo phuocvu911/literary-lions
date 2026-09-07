@@ -20,7 +20,7 @@
             FROM post_reactions AS pr
             WHERE pr.post_id = p.id
               AND pr.value = -1
-        ) AS dislikes
+        ) AS dislikes,
         COALESCE(
              (
                 SELECT GROUP_CONCAT(c.name, ', ')
