@@ -1,15 +1,15 @@
 package handlers
 
 import (
+	"database/sql"
 	"html/template"
-	"lions/internal/repository"
 )
 
-type Handler struct {
-	repo      *repository.Repository
+type App struct {
+	db        *sql.DB
 	templates map[string]*template.Template
 }
 
-func NewHandler(repo *repository.Repository, templates map[string]*template.Template) *Handler {
-	return &Handler{repo: repo, templates: templates}
+func NewApp(db *sql.DB, templates map[string]*template.Template) *App {
+	return &App{db: db, templates: templates}
 }

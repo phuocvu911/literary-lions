@@ -6,8 +6,8 @@ import (
 )
 
 // render execute a page template
-func (h *Handler) render(w http.ResponseWriter, page string, data any) {
-	t, ok := h.templates[page]
+func (a *App) render(w http.ResponseWriter, page string, data any) {
+	t, ok := a.templates[page]
 	if !ok {
 		log.Printf("Template %s not found in cache", page)
 		http.Error(w, "Template not found", http.StatusInternalServerError)

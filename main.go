@@ -4,10 +4,9 @@ import (
 	"embed"
 	"html/template"
 	"io/fs"
+	"log"
 	"lions/internal/database"
 	"lions/internal/handlers"
-	"lions/internal/repository"
-	"log"
 	"net/http"
 )
 
@@ -28,15 +27,13 @@ func main() {
 		log.Fatalf("err parse templates: %v", err)
 	}
 
-	//initialize repository
-	repo := repository.NewRepository(db)
-
-	//initialize handler
-	handler := handlers.NewHandler(repo, templates)
+	//initialize app
+	app := handlers.NewApp(db, templates)
 
 	mux := http.NewServeMux()
 	//register endpoints here
 
+	
 	//serve css
 	static, err := fs.Sub(webFS, "internal/web/static")
 	if err != nil {
@@ -71,4 +68,3 @@ func parseTemplates() (map[string]*template.Template, error) {
 }
 
 // render executes a page template, moved to helper.go in package handlers,
-
