@@ -1,33 +1,39 @@
 package database
-import(
-	"lions/internal/models"
+
+import (
 	"database/sql"
+	"lions/internal/models"
 )
 
 func ListCategories(db *sql.DB) ([]models.Category, error) {
-	categories:= []models.Category{}
+	categories := []models.Category{}
 
-	query:="SELECT id, name FROM categories ORDER by name;"
-	rows,err := db.Query(query)
-	if err!=nil{
-		return categories,err
+	query := "SELECT id, name FROM categories ORDER by name;"
+	rows, err := db.Query(query)
+	if err != nil {
+		return categories, err
 	}
 	defer rows.Close()
 
-	for rows.Next(){
+	for rows.Next() {
 		var category models.Category
-		err= rows.Scan(
+		err = rows.Scan(
 			&category.ID,
 			&category.Name,
 		)
-		if err!= nil{
+		if err != nil {
 			return categories, err
 		}
-		categories= append(categories, category)
+		categories = append(categories, category)
 	}
-	if err = rows.Err();err!= nil{
+	if err = rows.Err(); err != nil {
 		return categories, err
 	}
 
 	return categories, nil
 }
+
+
+// func GetCateByID(db *sql.DB, id int64) ([]string,error) {
+
+// }
