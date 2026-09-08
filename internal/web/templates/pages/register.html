@@ -1,0 +1,23 @@
+{{define "title"}}Register{{end}}
+
+{{define "content"}}
+
+<div class="form-page form-narrow">
+  <h1>Join the Literary Lions</h1>
+  {{if .Error}}<p class="error">{{.Error}}</p>{{end}}
+  <form method="post" action="/register">
+    <label for="email">Email</label>
+    <input type="email" id="email" name="email" required value="{{.Email}}">
+
+    <label for="username">Username</label>
+    <input type="text" id="username" name="username" minlength="3" maxlength="100" required value="{{.Username}}">
+
+    <label for="password">Password (8+ characters)</label>
+    <input type="password" id="password" name="password" minlength="8" required>
+
+    <button type="submit" class="btn btn-primary">Create account</button>
+  </form>
+  <p class="form-hint">Already a member? <a href="/login">Log in</a>.</p>
+</div>
+
+{{end}}

@@ -2,11 +2,12 @@ package main
 
 import (
 	"embed"
+	"flag"
 	"html/template"
 	"io/fs"
-	"log"
 	"lions/internal/database"
 	"lions/internal/handlers"
+	"log"
 	"net/http"
 )
 
@@ -14,6 +15,18 @@ import (
 var webFS embed.FS
 
 func main() {
+	//parse flag
+	useBcrypt := flag.Bool("bcrypt", false, "use bcrypt instead of sha256 for password hashing")
+	flag.Parse()
+
+	var hasher handlers.PasswordHasher
+	if *useBcrypt {
+		hasher = handlers.NewBcryptHasher()
+		log.Println("using bcrypt for password hashing")
+	} else {
+		hasher = handlers.SHA256Hasher{}
+		log.Println("using sha256 for password hashing")
+	}
 	//open db
 	db, err := database.OpenDB()
 	if err != nil {
@@ -28,13 +41,14 @@ func main() {
 	}
 
 	//initialize app
-	app := handlers.NewApp(db, templates)
+	app := handlers.NewApp(db, templates, hasher)
 
 	mux := http.NewServeMux()
 	//register endpoints here
-	mux.HandleFunc("/", app.NotFoundHandler)
+	mux.HandleFunc("/", app.NotFoundHandler) //every unregistered endpoints go here
+	mux.HandleFunc("GET /register", app.HandleRegister)
+	mux.HandleFunc("POST /register", app.HandleRegister)
 
-	
 	//serve css
 	static, err := fs.Sub(webFS, "internal/web/static")
 	if err != nil {
