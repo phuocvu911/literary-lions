@@ -40,6 +40,8 @@ func CreatePost(db *sql.DB, userID int64, title string, content string, category
 		}
 	}
 
+	
+
 	err = tx.Commit()
 	if err != nil {
 		return 0, err
@@ -100,3 +102,5 @@ func GetPostByID(db *sql.DB, id int64) (models.Post, error) {
 
 	return post, nil
 }
+
+func SearchPost()
