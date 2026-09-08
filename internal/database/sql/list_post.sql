@@ -35,3 +35,4 @@
     INNER JOIN users AS u
         ON u.id = p.user_id
     ORDER BY p.created_at DESC
+    LIMIT ? OFFSET ?

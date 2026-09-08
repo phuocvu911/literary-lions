@@ -3,17 +3,18 @@ package database
 import (
 	"database/sql"
 	_ "embed"
+	"fmt"
 
 	"lions/internal/models"
 )
 
-//go:embed sql/list_post.sql
+//go:embed sql/list_comments.sql
 var listCommentsQuery string
 
-//success: return id, fail return err
-func CreateComment(db *sql.DB, userID int64 , postID int64, content string) (int64,error) {
-	query:= "INSERT INTO comments (user_id, post_id, content) VALUES (?,?,?)"
-	result,err:= db.Exec(query, userID,postID,content)
+// CreateComment returns the new comment ID or an error.
+func CreateComment(db *sql.DB, userID int64, postID int64, content string) (int64, error) {
+	query := "INSERT INTO comments (user_id, post_id, content) VALUES (?,?,?)"
+	result, err := db.Exec(query, userID, postID, content)
 	if err != nil {
 		return 0, err
 	}
@@ -25,15 +26,19 @@ func CreateComment(db *sql.DB, userID int64 , postID int64, content string) (int
 
 }
 
-func ListComments(db *sql.DB, postID int64) ([]models.Comment, error) {
-	allComments:=[]models.Comment{}
+func ListComments(db *sql.DB, postID int64, limit, offset int) ([]models.Comment, error) {
+	if limit <= 0 || offset < 0 {
+		return nil, fmt.Errorf("invalid pagination values")
+	}
 
-	rows, err:= db.Query(listCommentsQuery, postID)
+	allComments := []models.Comment{}
+
+	rows, err := db.Query(listCommentsQuery, postID, limit, offset)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	for rows.Next(){
+	for rows.Next() {
 		var comment models.Comment
 		if err = rows.Scan(
 			&comment.ID,
@@ -42,8 +47,7 @@ func ListComments(db *sql.DB, postID int64) ([]models.Comment, error) {
 			&comment.Author,
 			&comment.Likes,
 			&comment.Dislikes,
-
-		) ; err!= nil{
+		); err != nil {
 			return nil, err
 		}
 		allComments = append(allComments, comment)
@@ -53,6 +57,5 @@ func ListComments(db *sql.DB, postID int64) ([]models.Comment, error) {
 	}
 
 	return allComments, nil
-	
-}
 
+}

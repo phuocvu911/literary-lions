@@ -20,3 +20,4 @@ INNER JOIN users AS u
     ON u.id = c.user_id
 WHERE c.post_id = ?
 ORDER BY c.created_at ASC
+LIMIT ? OFFSET ?

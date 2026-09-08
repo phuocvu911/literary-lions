@@ -3,6 +3,7 @@ package database
 import (
 	"database/sql"
 	_ "embed"
+	"fmt"
 
 	"lions/internal/models"
 )
@@ -40,8 +41,6 @@ func CreatePost(db *sql.DB, userID int64, title string, content string, category
 		}
 	}
 
-	
-
 	err = tx.Commit()
 	if err != nil {
 		return 0, err
@@ -49,11 +48,15 @@ func CreatePost(db *sql.DB, userID int64, title string, content string, category
 	return postID, nil
 }
 
-// ListPosts returns all posts ordered from newest to oldest.
-func ListPosts(db *sql.DB) ([]models.Post, error) {
+// ListPosts returns one page of posts ordered from newest to oldest.
+func ListPosts(db *sql.DB, limit, offset int) ([]models.Post, error) {
+	if limit <= 0 || offset < 0 {
+		return nil, fmt.Errorf("invalid pagination values")
+	}
+
 	allPosts := []models.Post{}
 
-	rows, err := db.Query(listPostsQuery)
+	rows, err := db.Query(listPostsQuery, limit, offset)
 	if err != nil {
 		return nil, err
 	}
