@@ -11,6 +11,8 @@ import (
 //go:embed sql/list_comments.sql
 var listCommentsQuery string
 
+
+
 // CreateComment returns the new comment ID or an error.
 func CreateComment(db *sql.DB, userID int64, postID int64, content string) (int64, error) {
 	query := "INSERT INTO comments (user_id, post_id, content) VALUES (?,?,?)"

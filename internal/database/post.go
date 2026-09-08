@@ -14,6 +14,9 @@ var listPostsQuery string
 //go:embed sql/get_post.sql
 var getPostQuery string
 
+//go:embed sql/search_posts.sql
+var searchQuery string
+
 // create post return postid. Failure return 0, err
 func CreatePost(db *sql.DB, userID int64, title string, content string, categoryIDs []int64) (int64, error) {
 	tx, err := db.Begin()
@@ -106,4 +109,39 @@ func GetPostByID(db *sql.DB, id int64) (models.Post, error) {
 	return post, nil
 }
 
-func SearchPost()
+func SearchPost(db *sql.DB, keyWord string, limit, offset int64) ([]models.Post, error) {
+	if limit <= 0 || offset < 0 {
+		return nil, fmt.Errorf("invalid pagination values")
+	}
+
+	searchResults := []models.Post{}
+	searchpattern:= "%"+ keyWord+"%"
+	rows, err := db.Query(searchQuery, searchpattern,searchpattern, limit, offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var post models.Post
+		if err = rows.Scan(
+			&post.ID,
+			&post.Title,
+			&post.Content,
+			&post.CreatedAt,
+			&post.Author,
+			&post.CommentCount,
+			&post.Likes,
+			&post.Dislikes,
+			&post.CategoryNames,
+		); err != nil {
+			return nil, err
+		}
+		searchResults = append(searchResults, post)
+	}
+	if err := rows.Err(); err != nil { // Check that iteration did not stop because of an error.
+		return nil, err
+	}
+
+	return searchResults, nil
+}
