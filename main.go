@@ -32,6 +32,7 @@ func main() {
 
 	mux := http.NewServeMux()
 	//register endpoints here
+	mux.HandleFunc("/", app.NotFoundHandler)
 
 	
 	//serve css
