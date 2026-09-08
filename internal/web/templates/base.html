@@ -6,7 +6,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{{template "title" .}} · Literary Lions</title>
-  <link rel="stylesheet" href="/static/style.css">
+  <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
   <header class="site-header">
@@ -15,6 +15,9 @@
       {{if .User}}
         <span class="nav-user">Hello, <strong>{{.User.Username}}</strong></span>
         <a class="btn btn-primary" href="/post/new/">New post</a>
+        <a href="/profile">
+            <img class="profile" src="/static/profile.jpeg" alt="profile">
+        </a>
         <form method="post" action="/logout" class="inline-form">
           <button type="submit" class="btn btn-quiet">Log out</button>
         </form>

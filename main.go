@@ -32,7 +32,7 @@ func main() {
 
 	mux := http.NewServeMux()
 	//register endpoints here
-
+	mux.HandleFunc("/profile", app.ProfileHandler)
 	
 	//serve css
 	static, err := fs.Sub(webFS, "internal/web/static")
