@@ -6,15 +6,58 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 
     <div class="card">
-        <img class="profile" src="/static/profile.jpeg" alt="user">
-        <h1>John Doe</h1>
-        <p class="title">CEO & Founder, Example</p>
-        <p>Harvard University</p>
+        <form
+            id="profile-upload"
+            action="/profile/upload"
+            method="POST"
+            enctype="multipart/form-data"
+        >
+            <label for="profile-image">
+                <img
+                    class="main-profile"
+                    src="/profile/image"
+                    alt="user"
+                    style="cursor: pointer;"
+                >
+            </label>
+
+            <input
+                type="file"
+                id="profile-image"
+                name="profile_image"
+                accept="image/*"
+                hidden
+            >
+        </form>
+        <h1>{{.User.Username}}</h1>
+        <p class="title">{{.User.Username}}</p>
+        <p>Member since {{.User.CreatedAt}}</p>
         <a class="social-link"  href="#"><i class="fa fa-dribbble"></i></a>
         <a class="social-link" href="#"><i class="fa fa-twitter"></i></a>
         <a class="social-link" href="#"><i class="fa fa-linkedin"></i></a>
         <a class="social-link" href="#"><i class="fa fa-facebook"></i></a>
         <p><button class="btn-profile">Contact</button></p>
     </div>
+
+    <div class="content">
+        <div class="posts">
+            {{range .Content.Posts}}
+                <li>{{.Title}}</li>
+            {{end}}    
+        </div>
+        <div class="comments">
+            {{range .Content.Comments}}
+                <li>{{.Content}}</li>
+            {{end}}    
+        </div>               
+    </div>
+
+    <script>
+        document.getElementById("profile-image").addEventListener("change", function () {
+            if (this.files.length > 0) {
+                document.getElementById("profile-upload").submit();
+            }
+        });
+    </script>    
 
 {{end}}

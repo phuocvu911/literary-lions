@@ -13,7 +13,8 @@ CREATE TABLE IF NOT EXISTS users (
 	email         TEXT NOT NULL UNIQUE COLLATE NOCASE, -- case intensive, standard for email and username
 	username      TEXT NOT NULL UNIQUE COLLATE NOCASE,
 	password_hash TEXT NOT NULL,
-	created_at    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+	created_at    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	profile_image BLOB
 );
 
 CREATE TABLE IF NOT EXISTS sessions (
@@ -61,6 +62,18 @@ CREATE TABLE IF NOT EXISTS comment_reactions (
 	comment_id INTEGER NOT NULL REFERENCES comments(id) ON DELETE CASCADE,
 	value      INTEGER NOT NULL CHECK (value IN (1, -1)),
 	PRIMARY KEY (user_id, comment_id)
+);
+
+CREATE TABLE IF NOT EXISTS files (
+    id INTEGER PRIMARY KEY,
+    user_id INTEGER NOT NULL,
+    filename TEXT NOT NULL,
+    content_type TEXT NOT NULL,
+    size INTEGER NOT NULL,
+    data BLOB NOT NULL,
+    created_at DATETIME NOT NULL,
+
+    FOREIGN KEY (user_id) REFERENCES users(id)
 );
 `
 
