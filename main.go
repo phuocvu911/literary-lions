@@ -8,18 +8,30 @@ import (
 	"lions/internal/database"
 	"lions/internal/handlers"
 	"net/http"
+	"flag"
 )
 
 //go:embed internal/web
 var webFS embed.FS
 
 func main() {
+	//check seed flag
+	seed := flag.Bool("seed", false, "seed the database")
+	flag.Parse()	
+
 	//open db
 	db, err := database.OpenDB()
 	if err != nil {
 		log.Fatalf("err open database: %v", err)
 	}
 	defer db.Close()
+
+	//if enabled seed db
+	if *seed {
+		if err := database.Seed(db); err != nil {
+			log.Fatal(err)
+		}
+	}	
 
 	//parse templates
 	templates, err := parseTemplates()

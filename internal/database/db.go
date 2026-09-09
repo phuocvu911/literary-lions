@@ -85,7 +85,6 @@ func OpenDB() (*sql.DB, error) {
 	if _, err := db.Exec(schema); err != nil {
 		return nil, fmt.Errorf("err apply schema: %w", err)
 	}
-	//insert categories here
 
 	return db, nil
 }
