@@ -48,6 +48,8 @@ func main() {
 	mux.HandleFunc("/", app.NotFoundHandler) //every unregistered endpoints go here
 	mux.HandleFunc("GET /register", app.HandleRegister)
 	mux.HandleFunc("POST /register", app.HandleRegister)
+	mux.HandleFunc("GET /login", app.HandleLogin)
+	mux.HandleFunc("POST /login", app.HandleLogin)
 
 	//serve css
 	static, err := fs.Sub(webFS, "internal/web/static")

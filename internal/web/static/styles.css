@@ -75,25 +75,6 @@ a { color: var(--accent-dark); }
   align-items: center;
 }
 
-.post-card, .post-full, .comment, .form-page {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 1rem 1.25rem;
-  margin-bottom: 1rem;
-}
-
-.post-card h2 { margin: 0 0 0.2rem; font-size: 1.2rem; }
-.post-card h2 a { text-decoration: none; color: var(--ink); }
-.post-card h2 a:hover { color: var(--accent-dark); }
-
-.post-meta { color: var(--muted); font-size: 0.85rem; margin: 0.1rem 0 0.5rem; }
-.tags { font-style: italic; }
-.post-excerpt { margin: 0 0 0.5rem; }
-.post-stats { color: var(--muted); font-size: 0.9rem; margin: 0; }
-
-.post-body, .comment-body { white-space: pre-wrap; }
-
 .btn {
   display: inline-block;
   border: 1px solid var(--accent);
