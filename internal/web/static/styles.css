@@ -1,4 +1,10 @@
 /*profile page*/
+.profile-container{
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+}
+
 .profile{
     height: 30px;
     width: 30px;
@@ -41,10 +47,4 @@
 
 button:hover, a:hover {
   opacity: 0.7;
-}
-
-.content{
-  display: flex;
-  flex-direction: row;
-  gap: 50px;
 }
