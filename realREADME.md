@@ -22,7 +22,8 @@ Docker deployment:
 ...
 
 ## How It Works
-
+### ERD
+![ERD Diagram](/erd.png)
 ...
 
 ## Extras
@@ -51,9 +52,9 @@ Aman
 
 ### Bcrypt Password Hashing
 
-Hashing passwords with bcrypt is a more secure alternative to sha256. Bcrypt automatically handles salting and is designed to be computationally expensive, making it resistant to brute-force attacks. This feature is implemented by using the `golang.org/x/crypto/bcrypt` package.
+Hashing passwords with bcrypt is more secure than sha256. Bcrypt automatically handles salting and is designed to be computationally expensive, making it resistant to brute-force attacks. This feature is implemented by using the `golang.org/x/crypto/bcrypt` package.
 
-It solves the problem of [rainbow table](https://www.huntress.com/cybersecurity-101/topic/rainbow-table-defined), which are precomputed lookup tables for matching the stolen hash (since 2 indentical passwords would produce the same hash). Since bcrypt includes a salt, it makes rainbow table attacks ineffective.
+It solves the problem of [rainbow table](https://www.huntress.com/cybersecurity-101/topic/rainbow-table-defined), which are precomputed lookup tables for matching the stolen hash (because 2 indentical passwords would produce the same hash). Since bcrypt includes a salt, it makes rainbow table attacks ineffective.
 
 You can run it with ` --bcrypt` flag to enable bcrypt password hashing.
 
