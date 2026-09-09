@@ -50,6 +50,8 @@ func main() {
 	mux.HandleFunc("POST /register", app.HandleRegister)
 	mux.HandleFunc("GET /login", app.HandleLogin)
 	mux.HandleFunc("POST /login", app.HandleLogin)
+	mux.HandleFunc("POST /logout", app.HandleLogout)
+	mux.HandleFunc("GET /{$}", app.HandleHome)
 
 	//serve css
 	static, err := fs.Sub(webFS, "internal/web/static")
