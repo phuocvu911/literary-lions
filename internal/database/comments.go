@@ -1,7 +1,6 @@
 package database
 
 import (
-	"database/sql"
 	_ "embed"
 	"fmt"
 
@@ -14,7 +13,7 @@ var listCommentsQuery string
 
 
 // CreateComment returns the new comment ID or an error.
-func CreateComment(db *sql.DB, userID int64, postID int64, content string) (int64, error) {
+func (db *DB) CreateComment(userID int64, postID int64, content string) (int64, error) {
 	query := "INSERT INTO comments (user_id, post_id, content) VALUES (?,?,?)"
 	result, err := db.Exec(query, userID, postID, content)
 	if err != nil {
@@ -28,7 +27,7 @@ func CreateComment(db *sql.DB, userID int64, postID int64, content string) (int6
 
 }
 
-func ListComments(db *sql.DB, postID int64, limit, offset int) ([]models.Comment, error) {
+func (db *DB) ListComments(postID int64, limit, offset int) ([]models.Comment, error) {
 	if limit <= 0 || offset < 0 {
 		return nil, fmt.Errorf("invalid pagination values")
 	}

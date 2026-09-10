@@ -1,7 +1,6 @@
 package database
 
 import (
-	"database/sql"
 	_ "embed"
 	"fmt"
 
@@ -18,7 +17,7 @@ var getPostQuery string
 var searchQuery string
 
 // create post return postid. Failure return 0, err
-func CreatePost(db *sql.DB, userID int64, title string, content string, categoryIDs []int64) (int64, error) {
+func (db *DB) CreatePost(userID int64, title string, content string, categoryIDs []int64) (int64, error) {
 	tx, err := db.Begin()
 	if err != nil {
 		return 0, err
@@ -52,7 +51,7 @@ func CreatePost(db *sql.DB, userID int64, title string, content string, category
 }
 
 // ListPosts returns one page of posts ordered from newest to oldest.
-func ListPosts(db *sql.DB, limit, offset int) ([]models.Post, error) {
+func (db *DB) ListPosts(limit, offset int) ([]models.Post, error) {
 	if limit <= 0 || offset < 0 {
 		return nil, fmt.Errorf("invalid pagination values")
 	}
@@ -89,7 +88,7 @@ func ListPosts(db *sql.DB, limit, offset int) ([]models.Post, error) {
 	return allPosts, nil
 }
 
-func GetPostByID(db *sql.DB, id int64) (models.Post, error) {
+func (db *DB) GetPostByID(id int64) (models.Post, error) {
 	post := models.Post{}
 	row := db.QueryRow(getPostQuery, id)
 	if err := row.Scan(
@@ -109,7 +108,7 @@ func GetPostByID(db *sql.DB, id int64) (models.Post, error) {
 	return post, nil
 }
 
-func SearchPost(db *sql.DB, keyWord string, limit, offset int64) ([]models.Post, error) {
+func (db *DB) SearchPost(keyWord string, limit, offset int64) ([]models.Post, error) {
 	if limit <= 0 || offset < 0 {
 		return nil, fmt.Errorf("invalid pagination values")
 	}

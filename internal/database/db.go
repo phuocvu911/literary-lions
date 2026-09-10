@@ -64,15 +64,21 @@ CREATE TABLE IF NOT EXISTS comment_reactions (
 );
 `
 
-func OpenDB() (*sql.DB, error) {
-	db, err := sql.Open("sqlite3", "forum.db?_foreign_keys=on")
+// DB owns the application's SQLite connection and exposes forum queries.
+type DB struct {
+	*sql.DB
+}
+
+func OpenDB() (*DB, error) {
+	rawDB, err := sql.Open("sqlite3", "forum.db?_foreign_keys=on")
 	if err != nil {
 		return nil, err
 	}
-	if _, err := db.Exec(schema); err != nil {
+	if _, err := rawDB.Exec(schema); err != nil {
+		rawDB.Close()
 		return nil, fmt.Errorf("err apply schema: %w", err)
 	}
 	//insert categories here
 
-	return db, nil
+	return &DB{DB: rawDB}, nil
 }
