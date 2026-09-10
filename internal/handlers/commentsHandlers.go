@@ -2,22 +2,20 @@ package handlers
 
 import (
 	"database/sql"
-	"encoding/json"
 	"errors"
 	"lions/internal/database"
 	"lions/internal/models"
-	"strings"
 	"net/http"
 	"strconv"
+	"strings"
 )
 
-type CommentListResponse struct{
-	Items []models.Comment  `json:"items"`
-	Page int `json: "page"`
-	Limit int `json:"limit"`
-	TotalItems int `json:"totalItems"`
+type CommentListResponse struct {
+	Items      []models.Comment `json:"items"`
+	Page       int              `json:"page"`
+	Limit      int              `json:"limit"`
+	TotalItems int              `json:"totalItems"`
 }
-
 
 func (app *App) CreateComment(w http.ResponseWriter, r *http.Request, user *models.User) {
 	var comment models.Comment
@@ -26,15 +24,27 @@ func (app *App) CreateComment(w http.ResponseWriter, r *http.Request, user *mode
 		return
 	}
 	//check content is not empty
-	if strings.TrimSpace(comment.Content) =="" {
+	if strings.TrimSpace(comment.Content) == "" {
 		writeError(w, errors.New("Comments cannot be empty"), http.StatusBadRequest)
 		return
 	}
-	postID:=GetPostIDFromUrl(w,r,"id")
-	
-	commentID, err := database.CreateComment(app.db, user.ID, int64(postID), comment.Content)
-	if err!= nil{
-		writeError(w,err,http.StatusBadRequest)
+	postID, err := GetPostIDFromURL(r, "id")
+	if err != nil {
+		writeError(w, err, http.StatusBadRequest)
+		return
+	}
+	if _, err := database.GetPostByID(app.db, postID); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			writeError(w, errors.New("post not found"), http.StatusNotFound)
+			return
+		}
+		writeError(w, errors.New("failed to load post"), http.StatusInternalServerError)
+		return
+	}
+
+	commentID, err := database.CreateComment(app.db, user.ID, postID, comment.Content)
+	if err != nil {
+		writeError(w, errors.New("failed to create comment"), http.StatusInternalServerError)
 		return
 	}
 	comment.ID = commentID
@@ -42,54 +52,50 @@ func (app *App) CreateComment(w http.ResponseWriter, r *http.Request, user *mode
 	writeJSON(w, http.StatusCreated, comment)
 }
 
-func (app *App)ListComment(w http.ResponseWriter, r *http.Request) {
-	limit,err:= optionalPageInt(r, "limit",20)
-	if err!=nil{
-		writeError(w, err, http.StatusBadRequest)
-		return
-	}
-	page,err:= optionalPageInt(r, "page",0)
-	if err!=nil{
-		writeError(w, err, http.StatusBadRequest)
-		return
-	}
-	offset:= limit*page
-	postID:=GetPostIDFromUrl(w,r,"id")
-
-	comments, err:= database.ListComments(app.db, int64(postID), limit, offset)
-	if err!= nil{
-		writeError(w,err,http.StatusBadRequest)
-		return
-	}
-
-	totalItems:= len(comments)
-
-	writeJSON(w,http.StatusOK, CommentListResponse{comments, page, limit, totalItems})
-
-
-
-}
-
-func optionalPageInt(r *http.Request, name string, defaultValue int) (int, error) {
-	value := r.URL.Query().Get(name)
-	if value == "" {
-		return defaultValue, nil
-	}
-	parsed, err := strconv.Atoi(value)
+func (app *App) ListComment(w http.ResponseWriter, r *http.Request) {
+	limit, page, offset, err := paginationParams(r)
 	if err != nil {
-		return 0, errors.New(name + " must be an integer")
-	}
-	return parsed, nil
-}
-
-func GetPostIDFromUrl ( w http.ResponseWriter, r *http.Request,idPath string) (int)  {
-		postID, err:=strconv.Atoi(r.PathValue("id")) 
-	if err!= nil{
 		writeError(w, err, http.StatusBadRequest)
-		return 0
+		return
 	}
-	return postID
+	postID, err := GetPostIDFromURL(r, "id")
+	if err != nil {
+		writeError(w, err, http.StatusBadRequest)
+		return
+	}
+	if _, err := database.GetPostByID(app.db, postID); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			writeError(w, errors.New("post not found"), http.StatusNotFound)
+			return
+		}
+		writeError(w, errors.New("failed to load post"), http.StatusInternalServerError)
+		return
+	}
+
+	comments, err := database.ListComments(app.db, postID, limit, offset)
+	if err != nil {
+		writeError(w, errors.New("failed to load comments"), http.StatusInternalServerError)
+		return
+	}
+
+	totalItems, err := database.CountComments(app.db, postID)
+	if err != nil {
+		writeError(w, err, http.StatusInternalServerError)
+		return
+	}
+
+	writeJSON(w, http.StatusOK, CommentListResponse{comments, page, limit, totalItems})
+
 }
 
+func GetPostIDFromURL(r *http.Request, idPath string) (int64, error) {
+	postID, err := strconv.ParseInt(r.PathValue(idPath), 10, 64)
+	if err != nil {
+		return 0, errors.New("post ID must be an integer")
+	}
+	if postID <= 0 {
+		return 0, errors.New("post ID must be positive")
+	}
 
-
+	return postID, nil
+}

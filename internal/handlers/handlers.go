@@ -1,17 +1,14 @@
 package handlers
+
 import (
 	//"database/sql"
+	"database/sql"
 	"encoding/json"
 	"errors"
-	"net/http"
-	"log"
-)
-
-package handlers
-
-import (
-	"database/sql"
 	"html/template"
+	"log"
+	"net/http"
+	"strconv"
 )
 
 type App struct {
@@ -33,7 +30,6 @@ func decodeJSON(r *http.Request, destination any) error {
 	return nil
 }
 
-
 func writeError(w http.ResponseWriter, err error, status int) {
 	http.Error(w, err.Error(), status)
 }
@@ -46,3 +42,37 @@ func writeJSON(w http.ResponseWriter, status int, value any) {
 	}
 }
 
+func optionalPageInt(r *http.Request, name string, defaultValue int) (int, error) {
+	value := r.URL.Query().Get(name)
+	if value == "" {
+		return defaultValue, nil
+	}
+	parsed, err := strconv.Atoi(value)
+	if err != nil {
+		return 0, errors.New(name + " must be an integer")
+	}
+	return parsed, nil
+}
+
+// paginationParams reads page and limit query parameters and computes the SQL offset.
+func paginationParams(r *http.Request) (limit, page, offset int, err error) {
+	limit, err = optionalPageInt(r, "limit", 20)
+	if err != nil {
+		return 0, 0, 0, err
+	}
+
+	page, err = optionalPageInt(r, "page", 1)
+	if err != nil {
+		return 0, 0, 0, err
+	}
+
+	if limit <= 0 || limit > 100 {
+		return 0, 0, 0, errors.New("limit must be between 1 and 100")
+	}
+	if page < 1 {
+		return 0, 0, 0, errors.New("page must be at least 1")
+	}
+
+	offset = limit * (page - 1)
+	return limit, page, offset, nil
+}

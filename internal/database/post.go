@@ -89,6 +89,17 @@ func ListPosts(db *sql.DB, limit, offset int) ([]models.Post, error) {
 	return allPosts, nil
 }
 
+// CountPosts returns the total number of posts before pagination.
+func CountPosts(db *sql.DB) (int, error) {
+	var total int
+	err := db.QueryRow(`SELECT COUNT(*) FROM posts`).Scan(&total)
+	if err != nil {
+		return 0, err
+	}
+
+	return total, nil
+}
+
 func GetPostByID(db *sql.DB, id int64) (models.Post, error) {
 	post := models.Post{}
 	row := db.QueryRow(getPostQuery, id)
@@ -109,14 +120,14 @@ func GetPostByID(db *sql.DB, id int64) (models.Post, error) {
 	return post, nil
 }
 
-func SearchPost(db *sql.DB, keyWord string, limit, offset int64) ([]models.Post, error) {
+func SearchPost(db *sql.DB, keyWord string, limit, offset int) ([]models.Post, error) {
 	if limit <= 0 || offset < 0 {
 		return nil, fmt.Errorf("invalid pagination values")
 	}
 
 	searchResults := []models.Post{}
-	searchpattern:= "%"+ keyWord+"%"
-	rows, err := db.Query(searchQuery, searchpattern,searchpattern, limit, offset)
+	searchPattern := "%" + keyWord + "%"
+	rows, err := db.Query(searchQuery, searchPattern, searchPattern, limit, offset)
 	if err != nil {
 		return nil, err
 	}
@@ -144,4 +155,21 @@ func SearchPost(db *sql.DB, keyWord string, limit, offset int64) ([]models.Post,
 	}
 
 	return searchResults, nil
+}
+
+// CountSearchPosts returns the number of posts matching a keyword before pagination.
+func CountSearchPosts(db *sql.DB, keyWord string) (int, error) {
+	searchPattern := "%" + keyWord + "%"
+
+	var total int
+	err := db.QueryRow(`
+		SELECT COUNT(*)
+		FROM posts
+		WHERE content LIKE ? OR title LIKE ?
+	`, searchPattern, searchPattern).Scan(&total)
+	if err != nil {
+		return 0, err
+	}
+
+	return total, nil
 }

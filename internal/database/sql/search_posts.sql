@@ -34,6 +34,6 @@
     FROM posts AS p
     INNER JOIN users AS u
         ON u.id = p.user_id
-    WHERE p.cotent LIKE ? OR p.title LIKE ?
+    WHERE p.content LIKE ? OR p.title LIKE ?
     ORDER BY p.created_at DESC
     LIMIT ? OFFSET ?
