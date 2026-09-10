@@ -36,18 +36,6 @@ The forum uses sha256 for password hashing. When a user registers, their passwor
 
 When a user logs in, a unique session ID (uuid) is generated and stored in a cookie on the user's browser. This session ID is also stored in the database, allowing the server to identify the user on subsequent requests. The session management system ensures that users remain logged in across different pages of the forum. Powered by the `uuid` package in Go since Go 1.27.0.
 
-### Search Feature
-
-Xinyu
-
-### Upload Images
-
-Aman
-
-### User Profile Page
-
-Aman
-
 ## Bonus Features
 
 ### Bcrypt Password Hashing
@@ -64,3 +52,15 @@ go run main.go --bcrypt
 
 ### 404 Page
 The 404 page is a simple soft landing page that shows the user that the page they are looking for does not exist if they navigate to a non-existent URL. The user can click the button to go back to the home page.
+
+### Search Feature
+
+Xinyu
+
+### Upload Images
+
+Aman
+
+### User Profile Page
+
+Aman
