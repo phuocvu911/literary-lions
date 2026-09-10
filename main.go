@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"embed"
 	"html/template"
 	"io/fs"
@@ -14,7 +15,7 @@ var webFS embed.FS
 
 // so our backend just a db and web, and handler will be the method of app
 type App struct {
-	db        *database.DB
+	db        *sql.DB
 	templates map[string]*template.Template
 }
 

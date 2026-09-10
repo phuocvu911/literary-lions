@@ -1,10 +1,11 @@
 package database
 
 import (
+	"database/sql"
 	"lions/internal/models"
 )
 
-func (db *DB) ListCategories() ([]models.Category, error) {
+func ListCategories(db *sql.DB) ([]models.Category, error) {
 	categories := []models.Category{}
 
 	query := "SELECT id, name FROM categories ORDER by name;"
