@@ -45,3 +45,4 @@ func writeJSON(w http.ResponseWriter, status int, value any) {
 		log.Println("failed to encode JSON:", err)
 	}
 }
+
