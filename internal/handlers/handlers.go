@@ -94,6 +94,31 @@ func (app *App) ProfileUploadHandler(w http.ResponseWriter, r *http.Request) {
     http.Redirect(w, r, "/profile", http.StatusSeeOther)
 }
 
+func (app *App) ProfileUpdateHandler(w http.ResponseWriter, r *http.Request) {
+    if r.Method != http.MethodPost {
+        http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+        return
+    }
+
+    userName := r.FormValue("username")
+    email := r.FormValue("email")
+    password := r.FormValue("password")
+
+    _, err := app.db.Exec(`
+        UPDATE users
+        SET username = ?, email = ?, password_hash = ?
+        WHERE id = 1
+    `, userName, email, password)
+
+    if err != nil {
+        fmt.Println(err)
+        http.Error(w, "Could not update the profile", http.StatusInternalServerError)
+        return
+    }
+            
+    http.Redirect(w, r, "/profile", http.StatusSeeOther)
+}
+
 
 func (app *App) ProfileImageHandler(w http.ResponseWriter, r *http.Request) {
     var imageData []byte

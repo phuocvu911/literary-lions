@@ -46,6 +46,7 @@ func main() {
 	//register endpoints here
 	mux.HandleFunc("/profile", app.ProfileHandler)
 	mux.HandleFunc("/profile/upload", app.ProfileUploadHandler)
+	mux.HandleFunc("/profile/update", app.ProfileUpdateHandler)
 	mux.HandleFunc("/profile/image", app.ProfileImageHandler)
 	
 	//serve css
@@ -67,15 +68,38 @@ func parseTemplates() (map[string]*template.Template, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	//parse components
+	components, err := fs.Glob(webFS, "internal/web/templates/components/*.html")
+	if err != nil {
+		return nil, err
+	}
+
+	files := append(
+		[]string{"internal/web/templates/base.html"},
+		components...,
+	)
+
+	base, err := template.ParseFS(webFS, files...)
+	if err != nil {
+		return nil, err
+	}
+
 	templates := make(map[string]*template.Template, len(pages))
 
 	// for each page, parse the base layout and the page template together
 	for _, page := range pages {
 		name := page[len("internal/web/templates/pages/"):]
-		t, err := template.ParseFS(webFS, "internal/web/templates/base.html", page)
+		t, err := base.Clone()
 		if err != nil {
 			return nil, err
 		}
+
+		t, err = t.ParseFS(webFS, page)
+		if err != nil {
+			return nil, err
+		}
+
 		templates[name] = t
 	}
 	return templates, nil
