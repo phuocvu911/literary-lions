@@ -1,11 +1,12 @@
 package main
 
 import (
-	"database/sql"
 	"embed"
+	"flag"
 	"html/template"
 	"io/fs"
 	"lions/internal/database"
+	"lions/internal/handlers"
 	"log"
 	"net/http"
 )
@@ -13,13 +14,19 @@ import (
 //go:embed internal/web
 var webFS embed.FS
 
-// so our backend just a db and web, and handler will be the method of app
-type App struct {
-	db        *sql.DB
-	templates map[string]*template.Template
-}
-
 func main() {
+	//parse flag
+	useBcrypt := flag.Bool("bcrypt", false, "use bcrypt instead of sha256 for password hashing")
+	flag.Parse()
+
+	var hasher handlers.PasswordHasher
+	if *useBcrypt {
+		hasher = handlers.NewBcryptHasher()
+		log.Println("using bcrypt for password hashing")
+	} else {
+		hasher = handlers.SHA256Hasher{}
+		log.Println("using sha256 for password hashing")
+	}
 	//open db
 	db, err := database.OpenDB()
 	if err != nil {
@@ -34,13 +41,17 @@ func main() {
 	}
 
 	//initialize app
-	app := &App{
-		db:        db,
-		templates: templates,
-	}
+	app := handlers.NewApp(db, templates, hasher)
 
 	mux := http.NewServeMux()
 	//register endpoints here
+	mux.HandleFunc("/", app.NotFoundHandler) //every unregistered endpoints go here
+	mux.HandleFunc("GET /register", app.HandleRegister)
+	mux.HandleFunc("POST /register", app.HandleRegister)
+	mux.HandleFunc("GET /login", app.HandleLogin)
+	mux.HandleFunc("POST /login", app.HandleLogin)
+	mux.HandleFunc("POST /logout", app.HandleLogout)
+	mux.HandleFunc("GET /{$}", app.HandleHome)
 
 	//serve css
 	static, err := fs.Sub(webFS, "internal/web/static")
@@ -75,17 +86,4 @@ func parseTemplates() (map[string]*template.Template, error) {
 	return templates, nil
 }
 
-// render executes a page template.
-func (app *App) render(w http.ResponseWriter, page string, data any) {
-	t, ok := app.templates[page]
-	if !ok {
-		log.Printf("Template %s not found in cache", page)
-		http.Error(w, "Template not found", http.StatusInternalServerError)
-		return
-	}
-
-	if err := t.ExecuteTemplate(w, "base", data); err != nil {
-		log.Printf("Error rendering template %s: %v", page, err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
-}
+// render executes a page template, moved to helper.go in package handlers,

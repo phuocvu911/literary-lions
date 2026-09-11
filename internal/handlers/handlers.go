@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	//"database/sql"
 	"database/sql"
 	"encoding/json"
 	"errors"
@@ -20,7 +19,6 @@ type App struct {
 func NewApp(db *sql.DB, templates map[string]*template.Template, hasher PasswordHasher) *App {
 	return &App{db: db, templates: templates, hasher: hasher}
 }
-
 func decodeJSON(r *http.Request, destination any) error {
 	decoder := json.NewDecoder(r.Body)
 	decoder.DisallowUnknownFields()
