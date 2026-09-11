@@ -3,11 +3,9 @@
 {{end}}
 
 {{define "content"}}
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-
     <div class="profile-container">
-        <div class="left-side">
-            <div class="card">
+        <div class="user-card">
+            <div class="card-image">
                 <form
                     id="profile-upload"
                     action="/profile/upload"
@@ -18,8 +16,7 @@
                         <img
                             class="main-profile"
                             src="/profile/image"
-                            alt="user"
-                            style="cursor: pointer;"
+                            alt="Profile picture"
                         >
                     </label>
 
@@ -31,31 +28,77 @@
                         hidden
                     >
                 </form>
-                <h1>{{.User.Username}}</h1>
-                <p class="title">{{.User.Username}}</p>
-                <p>Member since {{.User.CreatedAt}}</p>
-                <a class="social-link"  href="#"><i class="fa fa-dribbble"></i></a>
-                <a class="social-link" href="#"><i class="fa fa-twitter"></i></a>
-                <a class="social-link" href="#"><i class="fa fa-linkedin"></i></a>
-                <a class="social-link" href="#"><i class="fa fa-facebook"></i></a>
-                <p><button class="btn-profile">Contact</button></p>
             </div>
+            <div class="card-details">
+                <h1>{{.User.Username}}</h1>
+                <p><strong>Email:</strong> {{.User.Email}}</p>
+                <p><strong>Member since:</strong> {{.User.CreatedAt.Format "02-01-06"}}</p>
+            </div>
+            <div class="card-actions">
+                <button class="btn-profile">Edit profile</button>
+                <button class="btn-profile btn-danger">Delete profile</button>
+            </div>            
         </div>
-        <div class="middle">
-            <h2>My Posts</h2>
-            <div class="posts">
-                {{range .Content.Posts}}
-                    <li>{{.Title}}</li>
-                {{end}}    
-            </div>         
+        <!-- I can put links to posts and comments-->
+        <div class="user-stats">
+            <div class="stat">
+                <h2><i data-lucide="book-open"></i> {{.PostCount}}</h2>
+                <span>Posts</span>
+            </div>
+            <div class="stat">
+                <h2><i data-lucide="message-circle"></i> {{.CommentCount}} </h2>
+                <span>Comments</span>
+            </div>            
+            <div class="stat">
+                <h2><i data-lucide="heart"></i> 300 </h2>
+                <span>Likes</span>
+            </div>                      
         </div>        
-        <div class="right-side">
-            <h2>My Comments</h2>
-            <div class="comments">
-                {{range .Content.Comments}}
-                    <li>{{.Content}}</li>
-                {{end}}    
-            </div>      
+        <div class="user-content">
+            <div class="user-section">
+                <h2>My Posts </h2>
+                <ul class="posts">
+                    {{range .Content.Posts}}
+                        <li>
+                            <a href="#">
+                                {{.Title}}
+                            </a>
+                        </li>
+                    {{else}}
+                        <li class="empty">
+                            You haven't created any posts yet.
+                        </li>
+                    {{end}}
+                </ul>               
+            </div>
+            <div class="user-section">
+                <h2>My Comments</h2>
+                <ul class="comments">
+                    {{range .Content.Comments}}
+                        <li>
+                            {{.Content}}
+                        </li>
+                    {{else}}
+                        <li class="empty">
+                            You haven't made any comments yet.
+                        </li>
+                    {{end}}
+                </ul>
+            </div>   
+            <div class="user-section">
+                <h2>Liked Posts</h2>
+                <ul class="liked-posts">
+                    {{range .Content.Comments}}
+                        <li>
+                            {{.Content}}
+                        </li>
+                    {{else}}
+                        <li class="empty">
+                            You haven't liked any posts yet.
+                        </li>
+                    {{end}}
+                </ul>
+            </div>                  
         </div>
     </div>
 

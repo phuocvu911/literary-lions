@@ -23,6 +23,8 @@ type Content struct {
 type PageData struct {
     User *models.User
     Content Content
+    PostCount int 
+    CommentCount int
 }
 
 func NewApp(db *sql.DB, templates map[string]*template.Template) *App {
@@ -50,6 +52,8 @@ func (app *App) ProfileHandler(w http.ResponseWriter, r *http.Request) {
             Posts: posts, 
             Comments: comments,
         },
+        PostCount: len(posts), 
+        CommentCount: len(comments),
     }
 
     app.render(w, "profile.html", data)

@@ -16,7 +16,7 @@
         <span class="nav-user">Hello, <strong>{{.User.Username}}</strong></span>
         <a class="btn btn-primary" href="/post/new/">New post</a>
         <a href="/profile">
-            <img class="profile" src="/profile/image" alt="profile">
+            <img class="profile-icon" src="/profile/image" alt="profile">
         </a>
         <form method="post" action="/logout" class="inline-form">
           <button type="submit" class="btn btn-quiet">Log out</button>
@@ -31,6 +31,12 @@
     {{template "content" .}}
   </main>
   <footer class="site-footer">A cozy forum for talking about books. Developed by Hoang, Aman & Xinyu</footer>
+
+  <!-- For icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+      lucide.createIcons();
+  </script>
 </body>
 </html>
 
