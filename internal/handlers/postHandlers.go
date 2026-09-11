@@ -1,12 +1,12 @@
 package handlers
 
 import (
+	"database/sql"
 	"errors"
 	"lions/internal/database"
 	"lions/internal/models"
 	"net/http"
 	"strings"
-	"strconv"
 )
 
 type PostListResp struct {
@@ -32,9 +32,19 @@ func (app *App) CreatePost(w http.ResponseWriter, r *http.Request, user *models.
 		writeError(w, err, http.StatusBadRequest)
 		return
 	}
-	//check content is not empty
-	if strings.TrimSpace(post.Content) == "" {
-		writeError(w, errors.New("Comments cannot be empty"), http.StatusBadRequest)
+	post.Title = strings.TrimSpace(post.Title)
+	post.Content = strings.TrimSpace(post.Content)
+
+	if post.Title == "" {
+		writeError(w, errors.New("title cannot be empty"), http.StatusBadRequest)
+		return
+	}
+	if post.Content == "" {
+		writeError(w, errors.New("content cannot be empty"), http.StatusBadRequest)
+		return
+	}
+	if len(post.CategoryIDs) == 0 {
+		writeError(w, errors.New("at least one category is required"), http.StatusBadRequest)
 		return
 	}
 
@@ -69,19 +79,23 @@ func (app *App) ListPosts(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *App) GetPostByID(w http.ResponseWriter, r *http.Request) {
-	var post models.Post
-	postIDint,err:= strconv.Atoi (r.URL.Query().Get("id"))
-	if err!= nil{
-		writeError(w,errors.New("id must be an int"), http.StatusBadRequest)
+	postID, err := GetPostIDFromURL(r, "id")
+	if err != nil {
+		writeError(w, err, http.StatusBadRequest)
 		return
 	}
-	postID := int64(postIDint)
-	if post, err = database.GetPostByID(app.db, postID); err!= nil{
-		writeError(w, err, http.StatusBadRequest)
+
+	post, err := database.GetPostByID(app.db, postID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			writeError(w, errors.New("post not found"), http.StatusNotFound)
+			return
+		}
+		writeError(w, errors.New("failed to load post"), http.StatusInternalServerError)
+		return
 	}
 
 	writeJSON(w, http.StatusOK, post)
-	
 }
 
 func (app *App) SearchPost(w http.ResponseWriter, r *http.Request) {
