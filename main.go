@@ -52,6 +52,7 @@ func main() {
 	mux.HandleFunc("POST /login", app.HandleLogin)
 	mux.HandleFunc("POST /logout", app.HandleLogout)
 	mux.HandleFunc("GET /{$}", app.HandleHome)
+	app.Router(mux)
 
 	//serve css
 	static, err := fs.Sub(webFS, "internal/web/static")
