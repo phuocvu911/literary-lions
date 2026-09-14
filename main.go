@@ -9,7 +9,6 @@ import (
 	"lions/internal/handlers"
 	"log"
 	"net/http"
-	"flag"
 )
 
 //go:embed internal/web
@@ -18,10 +17,8 @@ var webFS embed.FS
 func main() {
 	//check seed flag
 	seed := flag.Bool("seed", false, "seed the database")
-	flag.Parse()	
-
-	//parse flag
 	useBcrypt := flag.Bool("bcrypt", false, "use bcrypt instead of sha256 for password hashing")
+	
 	flag.Parse()
 
 	var hasher handlers.PasswordHasher
