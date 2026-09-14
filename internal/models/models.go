@@ -9,6 +9,7 @@ type User struct {
 	Username     string
 	PasswordHash string
 	CreatedAt    time.Time
+	ProfileImage []byte
 }
 
 // Category represents a category of posts, has exactly same fields as the table category in the database
