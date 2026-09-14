@@ -8,7 +8,7 @@ import (
 func ListCategories(db *sql.DB) ([]models.Category, error) {
 	categories := []models.Category{}
 
-	query := "SELECT id, name FROM categories ORDER by name;"
+	query := "SELECT id, name, kind FROM categories ORDER BY kind, name;"
 	rows, err := db.Query(query)
 	if err != nil {
 		return categories, err
@@ -20,6 +20,7 @@ func ListCategories(db *sql.DB) ([]models.Category, error) {
 		err = rows.Scan(
 			&category.ID,
 			&category.Name,
+			&category.Kind,
 		)
 		if err != nil {
 			return categories, err
@@ -32,7 +33,6 @@ func ListCategories(db *sql.DB) ([]models.Category, error) {
 
 	return categories, nil
 }
-
 
 // func GetCateByID(db *sql.DB, id int64) ([]string,error) {
 

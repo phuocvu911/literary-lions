@@ -1,7 +1,43 @@
 {{ define "title"}}Home{{end}}
 
 {{define "content"}}
+<div class="layout">
+  <aside class="sidebar">
+    <!-- category sidebar -->
+    <h2>Browse channels</h2>
+    <a href="/">All posts</a>
+  </aside>
+
+  <section class="feed">
+    <!-- latest posts -->
+    <div class="feed-header">
+    <h1>Latest posts</h1>
+    {{range .Posts}}
+    <article class="post-card">
+     <div class="post-top">
+    <h2>{{.Title}}</h2>
+
+    <div class="post-meta">
+      <span>{{.Author}}</span>
+      <time>{{.CreatedAt.Format "02 Jan 2006"}}</time>
+    </div>
+  </div>
+
+  <p class="post-tags">{{.CategoryNames}}</p>
+
+  <p class="post-content">{{.Content}}</p>
+
+  <div class="post-stats">
+    <span>Likes: {{.Likes}}</span>
+    <span>Dislikes: {{.Dislikes}}</span>
+    <span>Comments: {{.CommentCount}}</span>
+  </div>
+</article>
 
 
+</div>
+  </section>
+</div>
+    {{end}}
 
 {{end}}
