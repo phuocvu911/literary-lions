@@ -2,11 +2,12 @@ package main
 
 import (
 	"embed"
+	"flag"
 	"html/template"
 	"io/fs"
-	"log"
 	"lions/internal/database"
 	"lions/internal/handlers"
+	"log"
 	"net/http"
 	"flag"
 )
@@ -19,6 +20,18 @@ func main() {
 	seed := flag.Bool("seed", false, "seed the database")
 	flag.Parse()	
 
+	//parse flag
+	useBcrypt := flag.Bool("bcrypt", false, "use bcrypt instead of sha256 for password hashing")
+	flag.Parse()
+
+	var hasher handlers.PasswordHasher
+	if *useBcrypt {
+		hasher = handlers.NewBcryptHasher()
+		log.Println("using bcrypt for password hashing")
+	} else {
+		hasher = handlers.SHA256Hasher{}
+		log.Println("using sha256 for password hashing")
+	}
 	//open db
 	db, err := database.OpenDB()
 	if err != nil {
@@ -40,7 +53,7 @@ func main() {
 	}
 
 	//initialize app
-	app := handlers.NewApp(db, templates)
+	app := handlers.NewApp(db, templates, hasher)
 
 	mux := http.NewServeMux()
 	//register endpoints here
@@ -49,6 +62,14 @@ func main() {
 	mux.HandleFunc("/profile/update", app.ProfileUpdateHandler)
 	mux.HandleFunc("/profile/image", app.ProfileImageHandler)
 	
+	mux.HandleFunc("/", app.NotFoundHandler) //every unregistered endpoints go here
+	mux.HandleFunc("GET /register", app.HandleRegister)
+	mux.HandleFunc("POST /register", app.HandleRegister)
+	mux.HandleFunc("GET /login", app.HandleLogin)
+	mux.HandleFunc("POST /login", app.HandleLogin)
+	mux.HandleFunc("POST /logout", app.HandleLogout)
+	mux.HandleFunc("GET /{$}", app.HandleHome)
+
 	//serve css
 	static, err := fs.Sub(webFS, "internal/web/static")
 	if err != nil {
