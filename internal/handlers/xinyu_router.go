@@ -11,6 +11,8 @@ func (app *App) Router(mux *http.ServeMux) {
 	mux.HandleFunc("GET /posts/{id}/comments", app.ListComment)
 
 	// Routes that require a valid login session.
-	mux.Handle("POST /posts", app.RequireAuth(app.CreatePost))
+	mux.Handle("GET /post/new", app.RequireAuth(app.NewPostForm))
+	mux.Handle("POST /post/new", app.RequireAuth(app.CreatePostFromForm))
+	//mux.Handle("POST /posts", app.RequireAuth(app.CreatePost))
 	mux.Handle("POST /posts/{id}/comments", app.RequireAuth(app.CreateComment))
 }
