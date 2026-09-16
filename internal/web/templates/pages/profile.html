@@ -145,14 +145,12 @@
                 return false;
             }
 
+            const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,100}$/;
             const password = document.forms["edit-form"]["password"].value;
-            const psLen = password.length;
 
-            if (password.trim() !== "") {
-                if (psLen<8 || psLen>100) {
-                    displayError("Password must be at least 8 characters.", "password");
-                    return false;
-                }
+            if (!passwordRegex.test(password)) {
+                displayError("Password must be at least 8 characters and contain uppercase, lowercase, number, and special character.", "password");
+                return false;
             }
 
             return true;
