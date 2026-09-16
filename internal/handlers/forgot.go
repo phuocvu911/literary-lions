@@ -33,7 +33,7 @@ func (a *App) HandleForgotPassword(w http.ResponseWriter, r *http.Request) {
 	var userID int
 	err := a.db.QueryRow("SELECT id FROM users WHERE email = ?", email).Scan(&userID)
 
-	// Same response either way — don't reveal whether the email exists.
+	// don't reveal whether the email exists.
 	if err != nil {
 		a.render(w, "forgot_password_sent.html", nil)
 		return
@@ -56,29 +56,29 @@ func (a *App) HandleForgotPassword(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := sendResetEmail(email, token); err != nil {
-		// Log it, but still show the generic success page —
-		// don't expose email delivery failures to the client.
+		// Log it, but still show the generic success page — don't expose email delivery failures to the client.
 		fmt.Printf("failed to send reset email: %v\n", err)
 	}
 
 	a.render(w, "forgot_password_sent.html", nil)
 }
 
-// sendResetEmail sends the reset link via SMTP. Swap the host/port/auth
-// for whatever provider you're using (Mailtrap for dev, a real SMTP
-// relay for production).
+// sendResetEmail sends the reset link via SMTP.
 func sendResetEmail(toEmail, token string) error {
 	from := "iamphuocvux@gmail.com" //placeholder email
 	password := "woxz ldnk gxaz fhlu"
 
 	smtpHost := "smtp.gmail.com"
-	smtpPort := "2026"
+	smtpPort := "587"
 
 	resetLink := fmt.Sprintf("http://localhost:8080/reset-password?token=%s", token)
 
 	msg := []byte(
-		"Subject: Reset your Literary Lions password\r\n" +
-			"\r\n" +
+		"From: Literary Lions Forum\r\n" +
+			"To: " + toEmail + "\r\n" +
+			"Subject: Reset your Literary Lions password\r\n" +
+			"Mime-Version: 1.0\r\n" +
+			"Content-Type: text/plain; charset=UTF-8\r\n\r\n" +
 			"Click the link below to reset your password. This link expires in 30 minutes.\r\n" +
 			resetLink + "\r\n",
 	)
@@ -91,9 +91,9 @@ func sendResetEmail(toEmail, token string) error {
 func (a *App) HandleResetPassword(w http.ResponseWriter, r *http.Request) {
 
 	token := r.URL.Query().Get("token")
-	// if r.Method == http.MethodPost {
-	// 	token = r.FormValue("token")
-	// }
+	if r.Method == http.MethodPost {
+		token = r.FormValue("token")
+	}
 
 	var userID int
 	var expiresAt time.Time
@@ -167,5 +167,7 @@ func (a *App) HandleResetPassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.Redirect(w, r, "/login", http.StatusSeeOther)
+	a.render(w, "reset_password.html", map[string]string{
+		"Success": "Password reset successfully!",
+	})
 }
