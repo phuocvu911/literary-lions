@@ -18,10 +18,12 @@
 
     <form 
         id="profile-update"
+        name = "edit-form"
         action="/profile/update"       
         method="POST" 
+        onsubmit="return validateForm()"
     >
-        <h4>Change details</h4>
+        <h4>Change details</h4>      
         <div class="form-group">
             <label for="username">Username</label>
             <input
