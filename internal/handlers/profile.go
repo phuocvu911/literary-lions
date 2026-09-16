@@ -5,6 +5,7 @@ import (
     "lions/internal/models"
     "io"
     "fmt"	
+    "strings"
 )
 
 type Content struct {
@@ -12,7 +13,6 @@ type Content struct {
     Comments []*models.Comment
 }
 
-//mock struct
 type PageData struct {
     User *models.User
     Content Content
@@ -21,8 +21,16 @@ type PageData struct {
 }
 
 func (app *App) ProfileHandler(w http.ResponseWriter, r *http.Request) {
+    
+    if app.currentUser(r) == nil {
+        http.Redirect(w, r, "/", http.StatusSeeOther)
+        return
+    }
+
+    ID := app.currentUser(r).ID
     getUser := `SELECT * FROM users WHERE id = ?`
-    row := app.db.QueryRow(getUser, 1)
+
+    row := app.db.QueryRow(getUser, ID)
     user := models.User{}
 
     err := row.Scan(&user.ID,&user.Email,&user.Username, &user.PasswordHash, &user.CreatedAt, &user.ProfileImage)
@@ -48,6 +56,11 @@ func (app *App) ProfileHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *App) ProfileUploadHandler(w http.ResponseWriter, r *http.Request) {
+    if app.currentUser(r) == nil {
+        http.Redirect(w, r, "/", http.StatusSeeOther)
+        return
+    }
+
     if r.Method != http.MethodPost {
         http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
         return
@@ -68,11 +81,13 @@ func (app *App) ProfileUploadHandler(w http.ResponseWriter, r *http.Request) {
         return
     }
 
+    ID := app.currentUser(r).ID
+
     _, err = app.db.Exec(`
         UPDATE users
         SET profile_image = ?
-        WHERE id = 1
-    `, imageData)
+        WHERE id = ?
+    `, imageData, ID)
 
     if err != nil {
         http.Error(w, "Could not save image", http.StatusInternalServerError)
@@ -87,16 +102,43 @@ func (app *App) ProfileUpdateHandler(w http.ResponseWriter, r *http.Request) {
         http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
         return
     }
+    
+    if app.currentUser(r) == nil {
+        http.Error(w, "Not signed in user", http.StatusUnauthorized)
+        return
+    }
 
+    user := app.currentUser(r)
     userName := r.FormValue("username")
     email := r.FormValue("email")
     password := r.FormValue("password")
+ 
+    //if password was not supplied
+    if strings.TrimSpace(password) == "" {
+        _, err := app.db.Exec(`
+            UPDATE users
+            SET username = ?, email = ?
+            WHERE id = ?
+        `, userName, email, user.ID)
+        
+        if err != nil {
+            fmt.Println(err)
+            http.Error(w, "Could not update the profile", http.StatusInternalServerError)
+            return
+        }
+    }     
 
-    _, err := app.db.Exec(`
+	hash, err := app.hasher.Hash(password)
+	if err != nil {
+		app.serverError(w, err)
+		return
+	}    
+
+    _, err = app.db.Exec(`
         UPDATE users
         SET username = ?, email = ?, password_hash = ?
-        WHERE id = 1
-    `, userName, email, password)
+        WHERE id = ?
+    `, userName, email, hash, user.ID)
 
     if err != nil {
         fmt.Println(err)

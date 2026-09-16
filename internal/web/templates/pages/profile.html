@@ -68,7 +68,7 @@
                 <ul class="posts">
                     {{range .Content.Posts}}
                         <li>
-                            <a href="#">
+                            <a href="/posts/{{.ID}}">
                                 {{.Title}}
                             </a>
                         </li>
@@ -84,7 +84,9 @@
                 <ul class="comments">
                     {{range .Content.Comments}}
                         <li>
-                            {{.Content}}
+                            <a href="/posts/{{.ID}}/comments">
+                                {{.Content}}
+                            </a>
                         </li>
                     {{else}}
                         <li class="empty">
@@ -111,7 +113,7 @@
     </div>
 
     <script>
-        document.getElementById("profile-image").addEventListener("change", function () {
+        document.getElementById("profile-image").addEventListener("change", function (e) {
             if (this.files.length > 0) {
                 document.getElementById("profile-upload").submit();
             }
@@ -134,6 +136,48 @@
                 modal.style.display = "none";
             }
         });      
+
+        function validateForm() {
+            const username = document.forms["edit-form"]["username"].value;
+
+            if (!/^[^\s@]{3,100}$/.test(username)) {
+                displayError("Username must be at least 3 characters, with no spaces or '@'.", "username");
+                return false;
+            }
+
+            const password = document.forms["edit-form"]["password"].value;
+            const psLen = password.length;
+
+            if (password.trim() !== "") {
+                if (psLen<8 || psLen>100) {
+                    displayError("Password must be at least 8 characters.", "password");
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        function displayError(msg, type) {
+            const oldError = document.querySelector(".form-error");
+            if (oldError) {
+                oldError.remove();
+            }
+
+            const username = document.getElementById("username");
+            const password = document.getElementById("password");
+
+            const div = document.createElement("div");
+            div.classList.add("form-error");
+            div.innerText = msg;            
+
+            if (type === "username") {
+                username.parentElement.appendChild(div);
+            } else if (type === "password") {
+                password.parentElement.appendChild(div);
+            }
+            
+        }
     </script>    
 
 {{end}}
