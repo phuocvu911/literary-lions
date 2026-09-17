@@ -156,6 +156,37 @@ func (app *App) GetPostByID(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, post)
 }
 
+// PostPage renders one post and its comments for browser visitors.
+func (app *App) PostPage(w http.ResponseWriter, r *http.Request) {
+	postID, err := GetPostIDFromURL(r, "id")
+	if err != nil {
+		writeError(w, err, http.StatusBadRequest)
+		return
+	}
+
+	post, err := database.GetPostByID(app.db, postID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			writeError(w, errors.New("post not found"), http.StatusNotFound)
+			return
+		}
+		app.serverError(w, err)
+		return
+	}
+
+	comments, err := database.ListComments(app.db, postID, 100, 0)
+	if err != nil {
+		app.serverError(w, err)
+		return
+	}
+
+	app.render(w, "post.html", map[string]any{
+		"User":     app.currentUser(r),
+		"Post":     post,
+		"Comments": comments,
+	})
+}
+
 func (app *App) SearchPost(w http.ResponseWriter, r *http.Request) {
 	keyWord := strings.TrimSpace(r.URL.Query().Get("q"))
 	if keyWord == "" {
