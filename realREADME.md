@@ -53,6 +53,11 @@ go run main.go --bcrypt
 ### 404 Page
 The 404 page is a simple soft landing page that shows the user that the page they are looking for does not exist if they navigate to a non-existent URL. The user can click the button to go back to the home page.
 
+### Reset Password
+Users can reset their passwords if they forgot it. The reset password link will be sent to their registered email address. Only registered email can receive the reset password link, but the error message will be generic to prevent the disclosure of registered email addresses. The link is valid for 30 minutes. Powered by `net/smtp` package.
+
+You can try to register an account with your email to see the reset password feature in action. If you don't receive the reset link, please check your spam folder.
+
 ### Search Feature
 
 Xinyu

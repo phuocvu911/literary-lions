@@ -75,6 +75,13 @@ CREATE TABLE IF NOT EXISTS files (
 
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
+CREATE TABLE IF NOT EXISTS password_resets (
+    token      TEXT PRIMARY KEY,
+    user_id    INTEGER NOT NULL,
+    expires_at DATETIME NOT NULL,
+    used       BOOLEAN NOT NULL DEFAULT 0,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
 `
 
 func OpenDB() (*sql.DB, error) {

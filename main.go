@@ -18,7 +18,7 @@ func main() {
 	//check seed flag
 	seed := flag.Bool("seed", false, "seed the database")
 	useBcrypt := flag.Bool("bcrypt", false, "use bcrypt instead of sha256 for password hashing")
-	
+
 	flag.Parse()
 
 	var hasher handlers.PasswordHasher
@@ -41,7 +41,7 @@ func main() {
 		if err := database.Seed(db); err != nil {
 			log.Fatal(err)
 		}
-	}	
+	}
 
 	//parse templates
 	templates, err := parseTemplates()
@@ -58,7 +58,7 @@ func main() {
 	mux.HandleFunc("/profile/upload", app.ProfileUploadHandler)
 	mux.HandleFunc("/profile/update", app.ProfileUpdateHandler)
 	mux.HandleFunc("/profile/image", app.ProfileImageHandler)
-	
+
 	mux.HandleFunc("/", app.NotFoundHandler) //every unregistered endpoints go here
 	mux.HandleFunc("GET /register", app.HandleRegister)
 	mux.HandleFunc("POST /register", app.HandleRegister)
@@ -66,6 +66,10 @@ func main() {
 	mux.HandleFunc("POST /login", app.HandleLogin)
 	mux.HandleFunc("POST /logout", app.HandleLogout)
 	mux.HandleFunc("GET /{$}", app.HandleHome)
+	mux.HandleFunc("GET /forgot-password", app.HandleForgotPassword)
+	mux.HandleFunc("POST /forgot-password", app.HandleForgotPassword)
+	mux.HandleFunc("GET /reset-password", app.HandleResetPassword)
+	mux.HandleFunc("POST /reset-password", app.HandleResetPassword)
 	app.Router(mux)
 
 	//serve css
