@@ -17,36 +17,43 @@ func Seed(db *sql.DB) error {
 	// Categories
 	// ------------------------------------------------------------
 
-	categories := []string{
-		"Technology",
-		"Programming",
-		"Gaming",
-		"Science",
-		"News",
-		"Music",
-		"Movies",
-		"Books",
-		"Travel",
-		"General",
+	type seedCategory struct {
+		Name string
+		Kind string
+	}
+
+	categories := []seedCategory{
+		{Name: "Fantasy", Kind: "genre"},
+		{Name: "Science Fiction", Kind: "genre"},
+		{Name: "Mystery", Kind: "genre"},
+		{Name: "Classics", Kind: "genre"},
+		{Name: "Non-fiction", Kind: "genre"},
+		{Name: "Dune", Kind: "book"},
+		{Name: "Harry Potter", Kind: "book"},
+		{Name: "Book Reviews", Kind: "discussion"},
+		{Name: "Theme Analysis", Kind: "discussion"},
+		{Name: "Character Study", Kind: "discussion"},
+		{Name: "J. K. Rowling", Kind: "author"},
+		{Name: "Frank Herbert", Kind: "author"},
 	}
 
 	categoryIDs := make(map[string]int64)
 
-	for _, name := range categories {
+	for _, category := range categories {
 		var id int64
 
 		err := tx.QueryRow(`
-			INSERT INTO categories (name)
-			VALUES (?)
-			ON CONFLICT(name) DO UPDATE SET name = excluded.name
+			INSERT INTO categories (name, kind)
+			VALUES (?, ?)
+			ON CONFLICT(name) DO UPDATE SET kind = excluded.kind
 			RETURNING id
-		`, name).Scan(&id)
+		`, category.Name, category.Kind).Scan(&id)
 
 		if err != nil {
-			return fmt.Errorf("insert category %q: %w", name, err)
+			return fmt.Errorf("insert category %q: %w", category.Name, err)
 		}
 
-		categoryIDs[name] = id
+		categoryIDs[category.Name] = id
 	}
 
 	// ------------------------------------------------------------
@@ -105,11 +112,11 @@ func Seed(db *sql.DB) error {
 	posts := make([]Post, 0, 50)
 
 	postCategories := []string{
-		"Technology",
-		"Programming",
-		"Gaming",
-		"Science",
-		"News",
+		"Fantasy",
+		"Science Fiction",
+		"Mystery",
+		"Book Reviews",
+		"Theme Analysis",
 	}
 
 	for _, user := range users {
@@ -182,7 +189,7 @@ func Seed(db *sql.DB) error {
 
 			// Add a second category to every second post.
 			if postNum%2 == 0 {
-				secondCategory := categories[(postNum+len(posts))%len(categories)]
+				secondCategory := categories[(postNum+len(posts))%len(categories)].Name
 				secondCategoryID := categoryIDs[secondCategory]
 
 				_, err = tx.Exec(`
@@ -215,9 +222,7 @@ func Seed(db *sql.DB) error {
 	for postIndex, post := range posts {
 		for commentNum := 1; commentNum <= 5; commentNum++ {
 			// Pick a user different from the post author when possible.
-			commentUser := users[
-				(postIndex+commentNum)%len(users),
-			]
+			commentUser := users[(postIndex+commentNum)%len(users)]
 
 			content := fmt.Sprintf(
 				"Sample comment %d on post %d by %s.",

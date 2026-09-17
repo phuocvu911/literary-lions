@@ -1,7 +1,69 @@
 {{ define "title"}}Home{{end}}
 
 {{define "content"}}
+<div class="layout">
+  <aside class="sidebar">
+    <!-- category sidebar -->
+    <h2>Browse channels</h2>
+    <a href="/">All posts</a>
+    <h2>Genres</h2>
+    {{range .Categories}}
+      {{if eq .Kind "genre"}}
+        <a href="/?category={{.ID}}">{{.Name}}</a>
+      {{end}}
+    {{end}}
+    <h2>Books</h2>
+    {{range .Categories}}
+      {{if eq .Kind "book"}}
+        <a href="/?category={{.ID}}">{{.Name}}</a>
+      {{end}}
+    {{end}}
+    <h2>Discussion</h2>
+    {{range .Categories}}
+      {{if eq .Kind "discussion"}}
+        <a href="/?category={{.ID}}">{{.Name}}</a>
+      {{end}}
+    {{end}}
+    <h2>Author</h2>
+    {{range .Categories}}
+      {{if eq .Kind "author"}}
+        <a href="/?category={{.ID}}">{{.Name}}</a>
+      {{end}}
+    {{end}}
+  </aside>
 
+  <section class="feed">
+    <!-- latest posts -->
+    <div class="feed-header">
+    <h1>Latest posts</h1>
+  </div>
+    {{range .Posts}}
+    <article class="post-card">
+     <div class="post-top">
+    <h2><a href="/post/{{.ID}}">{{.Title}}</a></h2>
 
+    <div class="post-meta">
+      <span>{{.Author}}</span>
+      <time>{{.CreatedAt.Format "02 Jan 2006"}}</time>
+    </div>
+    </div>
+
+  <div class="post-tags">
+    {{range .Categories}}
+      <span class="post-tag">{{.Name}}</span>
+    {{end}}
+  </div>
+
+  <p class="post-content">{{.Content}}</p>
+
+  <div class="post-stats">
+    <span>Likes: {{.Likes}}</span>
+    <span>Dislikes: {{.Dislikes}}</span>
+    <span>Comments: {{.CommentCount}}</span>
+  </div>
+</article>
+    {{end}}
+  </section>
+</div>
 
 {{end}}

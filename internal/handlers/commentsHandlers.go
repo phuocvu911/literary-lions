@@ -52,6 +52,28 @@ func (app *App) CreateComment(w http.ResponseWriter, r *http.Request, user *mode
 	writeJSON(w, http.StatusCreated, comment)
 }
 
+// CreateCommentFromForm creates a comment submitted from a post detail page.
+func (app *App) CreateCommentFromForm(w http.ResponseWriter, r *http.Request, user *models.User) {
+	postID, err := GetPostIDFromURL(r, "id")
+	if err != nil {
+		writeError(w, err, http.StatusBadRequest)
+		return
+	}
+
+	content := strings.TrimSpace(r.FormValue("content"))
+	if content == "" {
+		writeError(w, errors.New("comment cannot be empty"), http.StatusBadRequest)
+		return
+	}
+
+	if _, err := database.CreateComment(app.db, user.ID, postID, content); err != nil {
+		writeError(w, errors.New("failed to create comment"), http.StatusInternalServerError)
+		return
+	}
+
+	http.Redirect(w, r, "/post/"+strconv.FormatInt(postID, 10), http.StatusSeeOther)
+}
+
 func (app *App) ListComment(w http.ResponseWriter, r *http.Request) {
 	limit, page, offset, err := paginationParams(r)
 	if err != nil {

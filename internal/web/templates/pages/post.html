@@ -1,0 +1,55 @@
+{{define "title"}}{{.Post.Title}}{{end}}
+
+{{define "content"}}
+<article class="post-card post-detail">
+  <div class="post-top">
+    <h1>{{.Post.Title}}</h1>
+    <div class="post-meta">
+      <span>{{.Post.Author}}</span>
+      <time>{{.Post.CreatedAt.Format "02 Jan 2006"}}</time>
+    </div>
+  </div>
+
+  <div class="post-tags">
+    {{range .Post.Categories}}
+      <span class="post-tag">{{.Name}}</span>
+    {{end}}
+  </div>
+
+  <p class="post-content">{{.Post.Content}}</p>
+  <div class="post-stats">
+    <span>Likes: {{.Post.Likes}}</span>
+    <span>Dislikes: {{.Post.Dislikes}}</span>
+    <span>Comments: {{.Post.CommentCount}}</span>
+  </div>
+</article>
+
+<section class="comments">
+  <h2>Comments</h2>
+  {{if .User}}
+    <form method="post" action="/post/{{.Post.ID}}/comments">
+      <label for="content">Add a comment</label>
+      <textarea id="content" name="content" rows="4" required></textarea>
+      <button type="submit" class="btn btn-primary">Post comment</button>
+    </form>
+  {{else}}
+    <p><a href="/login">Log in</a> to join the discussion.</p>
+  {{end}}
+
+  {{range .Comments}}
+    <article class="comment">
+      <div class="post-meta">
+        <span>{{.Author}}</span>
+        <time>{{.CreatedAt.Format "02 Jan 2006"}}</time>
+      </div>
+      <p>{{.Content}}</p>
+      <div class="post-stats">
+        <span>Likes: {{.Likes}}</span>
+        <span>Dislikes: {{.Dislikes}}</span>
+      </div>
+    </article>
+  {{else}}
+    <p>No comments yet. Start the conversation.</p>
+  {{end}}
+</section>
+{{end}}

@@ -16,6 +16,7 @@ type User struct {
 type Category struct {
 	ID   int64
 	Name string
+	Kind string
 }
 
 // Post represents a post in the forum.
@@ -29,6 +30,7 @@ type Post struct {
 	Dislikes      int
 	CommentCount  int
 	CategoryNames string
+	Categories    []Category
 }
 
 // Comment represents a comment on a post.

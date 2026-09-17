@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	_ "embed"
 	"fmt"
+	"strings"
 
 	"lions/internal/models"
 )
@@ -86,7 +87,7 @@ func ListPosts(db *sql.DB, limit, offset int) ([]models.Post, error) {
 		return nil, err
 	}
 
-	return allPosts, nil
+	return populatePostCategories(db, allPosts)
 }
 
 // CountPosts returns the total number of posts before pagination.
@@ -117,7 +118,12 @@ func GetPostByID(db *sql.DB, id int64) (models.Post, error) {
 		return models.Post{}, err
 	}
 
-	return post, nil
+	posts, err := populatePostCategories(db, []models.Post{post})
+	if err != nil {
+		return models.Post{}, err
+	}
+
+	return posts[0], nil
 }
 
 func SearchPost(db *sql.DB, keyWord string, limit, offset int) ([]models.Post, error) {
@@ -154,7 +160,53 @@ func SearchPost(db *sql.DB, keyWord string, limit, offset int) ([]models.Post, e
 		return nil, err
 	}
 
-	return searchResults, nil
+	return populatePostCategories(db, searchResults)
+}
+
+// populatePostCategories loads categories for a page of posts in one query.
+func populatePostCategories(db *sql.DB, posts []models.Post) ([]models.Post, error) {
+	if len(posts) == 0 {
+		return posts, nil
+	}
+
+	placeholders := make([]string, len(posts))
+	args := make([]any, len(posts))
+	for i, post := range posts {
+		placeholders[i] = "?"
+		args[i] = post.ID
+	}
+
+	query := `
+		SELECT pc.post_id, c.id, c.name, c.kind
+		FROM post_categories AS pc
+		INNER JOIN categories AS c ON c.id = pc.category_id
+		WHERE pc.post_id IN (` + strings.Join(placeholders, ", ") + `)
+		ORDER BY pc.post_id, c.kind, c.name`
+
+	rows, err := db.Query(query, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	categoriesByPostID := make(map[int64][]models.Category, len(posts))
+	for rows.Next() {
+		var postID int64
+		var category models.Category
+		if err := rows.Scan(&postID, &category.ID, &category.Name, &category.Kind); err != nil {
+			return nil, err
+		}
+		categoriesByPostID[postID] = append(categoriesByPostID[postID], category)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	for i := range posts {
+		posts[i].Categories = categoriesByPostID[posts[i].ID]
+	}
+
+	return posts, nil
 }
 
 // CountSearchPosts returns the number of posts matching a keyword before pagination.
