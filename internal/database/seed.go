@@ -348,10 +348,10 @@ func Seed(db *sql.DB) error {
 
 	for i, user := range users {
 		filename := fmt.Sprintf("avatar-%d.txt", i+1)
-		content := []byte(fmt.Sprintf(
+		content := fmt.Appendf(nil,
 			"Sample file belonging to %s",
 			user.Username,
-		))
+		)
 
 		_, err := tx.Exec(`
 			INSERT INTO files (
