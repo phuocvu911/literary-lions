@@ -1,14 +1,23 @@
 package main
 
 import (
+	"context"
 	"embed"
+	"errors"
 	"flag"
 	"html/template"
 	"io/fs"
 	"lions/internal/database"
 	"lions/internal/handlers"
+	"lions/internal/shutdown"
 	"log"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
+
+	"github.com/phuocvu911/ratelimiter"
 )
 
 //go:embed internal/web
@@ -80,8 +89,33 @@ func main() {
 	mux.Handle("GET /static/", http.StripPrefix("/static/", http.FileServerFS(static)))
 
 	//start server
-	log.Printf("Literary Lions forum listening on http://localhost:8080")
-	log.Fatal(http.ListenAndServe(":8080", mux))
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+	limiter := ratelimiter.New(2, 5, 30*time.Second)
+
+	// Start the cleanup goroutine for rate limiters
+	limiter.StartCleanup(ctx, 10*time.Second)
+	defer limiter.Stop()
+
+	server := &http.Server{
+		Addr:    ":8080",
+		Handler: limiter.Limit(mux),
+	}
+
+	go func() {
+		log.Printf("Literary Lions forum is running on http://localhost%s\n", server.Addr)
+		if err := server.ListenAndServe(); err != nil {
+			if errors.Is(err, http.ErrServerClosed) {
+				log.Println("Server closed")
+				return
+			}
+			log.Fatalf("server failed: %v", err)
+		}
+	}()
+
+	if err = shutdown.Graceful(ctx, server, 5*time.Second); err != nil {
+		log.Fatal(err)
+	}
 }
 
 // parseTemplates builds one template set per page, each composed with the shared base layout.

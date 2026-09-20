@@ -6,3 +6,8 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.50
 	golang.org/x/crypto v0.57.0
 )
+
+require (
+	github.com/phuocvu911/ratelimiter v0.1.3 // indirect
+	golang.org/x/time v0.16.0 // indirect
+)
