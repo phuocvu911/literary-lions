@@ -150,13 +150,19 @@ func (app *App) ProfileUpdateHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *App) ProfileImageHandler(w http.ResponseWriter, r *http.Request) {
+    if app.currentUser(r) == nil {
+        http.Redirect(w, r, "/", http.StatusSeeOther)
+        return
+    }    
+
+    ID := app.currentUser(r).ID
     var imageData []byte
 
     err := app.db.QueryRow(`
         SELECT profile_image
         FROM users
-        WHERE id = 1
-    `).Scan(&imageData)
+        WHERE id = ?
+    `, ID).Scan(&imageData)
 
     if err != nil {
         http.Error(w, "Image not found", http.StatusNotFound)

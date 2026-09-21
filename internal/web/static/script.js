@@ -1,23 +1,32 @@
 //for icons
 lucide.createIcons();
 
-document.getElementById("profile-image").addEventListener("change", function (e) {
-    if (this.files.length > 0) {
-        document.getElementById("profile-upload").submit();
-    }
-});
+const profileImage = document.getElementById("profile-image");
+
+if (profileImage) {
+    profileImage.addEventListener("change", function () {
+        if (this.files.length > 0) {
+            document.getElementById("profile-upload").submit();
+        }
+    });
+}
 
 const editBtn = document.getElementById("edit-profile");
 const modal = document.getElementById("edit-modal");
 const closeBtn = document.querySelector(".close");
 
-editBtn.addEventListener("click", () => {
-    modal.style.display = "block";
-});
+if (editBtn) {
+    editBtn.addEventListener("click", () => {
+        modal.style.display = "block";
+    });
+}
 
-closeBtn.addEventListener("click", () => {
-    modal.style.display = "none";
-});
+if (closeBtn) {
+    closeBtn.addEventListener("click", () => {
+        modal.style.display = "none";
+    });
+}
+
 
 window.addEventListener("click", (e) => {
     if (e.target === modal) {
@@ -64,3 +73,54 @@ function displayError(msg, type) {
     }
     
 }
+
+const reactions = document.getElementById("reaction-buttons");
+
+if (reactions) {
+    const postID = reactions.dataset.postId;
+    console.log(postID)
+
+    const likeBtn = document.getElementById("likeBtn");
+    console.log(likeBtn)
+    const dislikeBtn = document.getElementById("dislikeBtn");
+
+    const likeCount = document.getElementById("likeCount");
+    const dislikeCount = document.getElementById("dislikeCount");
+
+    async function react(value) {
+        const response = await fetch(`/post/${postID}/reaction`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                value: value
+            })
+        });
+
+        if (!response.ok) {
+            console.error("Failed to update reaction");
+            const error = await response.text();
+            console.error("Reaction failed:", response.status, error);
+            return;
+        }
+
+        const data = await response.json();
+
+        likeCount.textContent = data.likes;
+        dislikeCount.textContent = data.dislikes;
+
+        likeBtn.classList.toggle("active", data.user_reaction === 1);
+        dislikeBtn.classList.toggle("active", data.user_reaction === -1);
+    }
+
+    likeBtn.addEventListener("click", () => {
+        console.log("reacted")
+        react(1);
+    });
+
+    dislikeBtn.addEventListener("click", () => {
+        react(-1);
+    });    
+}
+

@@ -15,6 +15,7 @@ func (app *App) Router(mux *http.ServeMux) {
 	mux.Handle("GET /post/new", app.RequireAuth(app.NewPostForm))
 	mux.Handle("POST /post/new", app.RequireAuth(app.CreatePostFromForm))
 	mux.Handle("POST /post/{id}/comments", app.RequireAuth(app.CreateCommentFromForm))
+	mux.Handle("POST /post/{id}/reaction", app.RequireAuth(app.ReactToPost))
 	//mux.Handle("POST /posts", app.RequireAuth(app.CreatePost))
 	mux.Handle("POST /posts/{id}/comments", app.RequireAuth(app.CreateComment))
 }

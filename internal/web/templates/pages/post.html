@@ -18,9 +18,23 @@
 
   <p class="post-content">{{.Post.Content}}</p>
   <div class="post-stats">
-    <span>Likes: {{.Post.Likes}}</span>
-    <span>Dislikes: {{.Post.Dislikes}}</span>
-    <span>Comments: {{.Post.CommentCount}}</span>
+    {{if .User}}
+      <div id="reaction-buttons"  class="reaction-buttons" data-post-id="{{.Post.ID}}">
+        <button type="button" class="reaction-btn" id="likeBtn" data-value="1"> 
+          👍
+          <span id="likeCount">{{.Post.Likes}}</span>
+        </button>
+        <button type="button" class="reaction-btn" id="dislikeBtn" data-value="-1"> 
+          👎 
+          <span id="dislikeCount">{{.Post.Dislikes}}</span>
+        </button>
+      </div>
+      <span>Comments: {{.Post.CommentCount}}</span>
+    {{else}}
+      <span>Likes: {{.Post.Likes}}</span>
+      <span>Dislikes: {{.Post.Dislikes}}</span>
+      <span>Comments: {{.Post.CommentCount}}</span>
+    {{end}}
   </div>
 </article>
 
