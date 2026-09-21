@@ -77,17 +77,15 @@ func Seed(db *sql.DB) error {
 			INSERT INTO users (
 				email,
 				username,
-				password_hash,
-				created_at
+				password_hash
 			)
-			VALUES (?, ?, ?, ?)
+			VALUES (?, ?, ?)
 			ON CONFLICT(username) DO UPDATE SET username = excluded.username
 			RETURNING id
 		`,
 			email,
 			username,
-			"$2a$10$examplehashedpassword",
-			time.Now().Add(-time.Duration(i)*24*time.Hour),
+			"a4509dbd97b400cc759e42104f1c714f7a93ab15e50d7efa4108b441283d5a02",
 		).Scan(&id)
 
 		if err != nil {
@@ -99,6 +97,17 @@ func Seed(db *sql.DB) error {
 			Username: username,
 		})
 	}
+
+	_, _ = tx.Exec(`
+			INSERT INTO users (
+				email,
+				username,
+				password_hash
+			)
+			VALUES (?, ?, ?)`,
+		"phuocvu@gmail.com",
+		"hoang",
+		"$2a$10$gGwFscqWfrx1rleRTINH1e7qUA.fPb5.v62Fy2EviEQtJcauDNRbq")
 
 	// ------------------------------------------------------------
 	// Posts
@@ -339,10 +348,10 @@ func Seed(db *sql.DB) error {
 
 	for i, user := range users {
 		filename := fmt.Sprintf("avatar-%d.txt", i+1)
-		content := []byte(fmt.Sprintf(
+		content := fmt.Appendf(nil,
 			"Sample file belonging to %s",
 			user.Username,
-		))
+		)
 
 		_, err := tx.Exec(`
 			INSERT INTO files (

@@ -58,6 +58,10 @@ Users can reset their passwords if they forgot it. The reset password link will 
 
 You can try to register an account with your email to see the reset password feature in action. If you don't receive the reset link, please check your spam folder.
 
+### Rate Limiter
+
+The rate limiter powered by `github.com/phuocvu911/ratelimiter` package is used to prevent abuse of the forum by limiting the number of requests a user can make in a given time frame. This helps to protect the server from being overwhelmed by too many requests and ensures fair usage for all users.
+
 ### Search Feature
 
 Xinyu
