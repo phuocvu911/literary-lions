@@ -180,10 +180,28 @@ func (app *App) PostPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	//current reaction to the post
+	var userReaction int
+
+	if app.currentUser(r) != nil {
+		err = app.db.QueryRow(`
+			SELECT value
+			FROM post_reactions
+			WHERE user_id = ? AND post_id = ?
+		`, app.currentUser(r).ID, post.ID).Scan(&userReaction)
+
+		if err == sql.ErrNoRows {
+			userReaction = 0
+		} else if err != nil {
+			return
+		}	
+	}
+
 	app.render(w, "post.html", map[string]any{
 		"User":     app.currentUser(r),
 		"Post":     post,
 		"Comments": comments,
+		"UserReaction": userReaction,
 	})
 }
 

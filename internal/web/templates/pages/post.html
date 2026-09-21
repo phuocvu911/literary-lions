@@ -20,11 +20,11 @@
   <div class="post-stats">
     {{if .User}}
       <div id="reaction-buttons"  class="reaction-buttons" data-post-id="{{.Post.ID}}">
-        <button type="button" class="reaction-btn" id="likeBtn" data-value="1"> 
+        <button type="button" class="reaction-btn {{if eq .UserReaction 1}}active{{end}}" id="likeBtn" data-value="1"> 
           👍
           <span id="likeCount">{{.Post.Likes}}</span>
         </button>
-        <button type="button" class="reaction-btn" id="dislikeBtn" data-value="-1"> 
+        <button type="button" class="reaction-btn {{if eq .UserReaction -1}}active{{end}}" id="dislikeBtn" data-value="-1"> 
           👎 
           <span id="dislikeCount">{{.Post.Dislikes}}</span>
         </button>
