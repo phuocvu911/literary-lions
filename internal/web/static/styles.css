@@ -380,6 +380,8 @@ a {
 }
 
 
+
+
 .stat {
   display: flex;
   flex-direction: column;
@@ -652,5 +654,24 @@ a {
 
   .user-content {
     grid-template-columns: 1fr;
+  }
+}
+
+
+/* -------------------------------------------------------
+   SIDEBAR — FROZEN
+------------------------------------------------------- */
+
+.sidebar {
+  position: sticky;
+  top: 1rem;
+  align-self: start;
+  max-height: calc(100vh - 2rem);
+}
+
+@media (max-width: 720px) {
+  .sidebar {
+    position: static;
+    max-height: none;
   }
 }

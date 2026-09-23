@@ -28,9 +28,9 @@
   <h2>Comments</h2>
   {{if .User}}
     <form method="post" action="/post/{{.Post.ID}}/comments">
-      <label for="content">Add a comment</label>
-      <textarea id="content" name="content" rows="4" required></textarea>
-      <button type="submit" class="btn btn-primary">Post comment</button>
+      <label for="content">Add a comment:</label><br>
+      <textarea id="content" name="content" rows="4" required></textarea><br>
+      <button type="submit" class="btn btn-primary">Post comment</button><br>
     </form>
   {{else}}
     <p><a href="/login">Log in</a> to join the discussion.</p>
@@ -40,7 +40,7 @@
     <article class="comment">
       <div class="post-meta">
         <span>{{.Author}}</span>
-        <time>{{.CreatedAt.Format "02 Jan 2006"}}</time>
+        <time>{{.CreatedAt.Format "02-01-2006"}}</time>
       </div>
       <p>{{.Content}}</p>
       <div class="post-stats">
