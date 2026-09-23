@@ -20,11 +20,11 @@
   <div class="post-stats">
     {{if .User}}
       <div id="reaction-buttons"  class="reaction-buttons" data-post-id="{{.Post.ID}}">
-        <button type="button" class="reaction-btn {{if eq .UserReaction 1}}active{{end}}" id="likeBtn" data-value="1"> 
+        <button type="button" class="reaction-btn {{if eq .ReactionToPost 1}}active{{end}}" id="likeBtn" data-value="1"> 
           👍
           <span id="likeCount">{{.Post.Likes}}</span>
         </button>
-        <button type="button" class="reaction-btn {{if eq .UserReaction -1}}active{{end}}" id="dislikeBtn" data-value="-1"> 
+        <button type="button" class="reaction-btn {{if eq .ReactionToPost -1}}active{{end}}" id="dislikeBtn" data-value="-1"> 
           👎 
           <span id="dislikeCount">{{.Post.Dislikes}}</span>
         </button>
@@ -50,20 +50,46 @@
     <p><a href="/login">Log in</a> to join the discussion.</p>
   {{end}}
 
-  {{range .Comments}}
-    <article class="comment">
-      <div class="post-meta">
-        <span>{{.Author}}</span>
-        <time>{{.CreatedAt.Format "02 Jan 2006"}}</time>
-      </div>
-      <p>{{.Content}}</p>
-      <div class="post-stats">
-        <span>Likes: {{.Likes}}</span>
-        <span>Dislikes: {{.Dislikes}}</span>
-      </div>
-    </article>
+  {{if .User}}
+    {{range .Comments}}
+      <article class="comment">
+        <div class="post-meta">
+          <span>{{.Author}}</span>
+          <time>{{.CreatedAt.Format "02 Jan 2006"}}</time>
+        </div>
+        <p>{{.Content}}</p>
+        <div class="post-stats">
+          <div id="reaction-buttons-comments" class="reaction-buttons-comments" data-comment-id="{{.ID}}">
+            <button type="button" class="reaction-btn {{if eq .CurrentReaction 1}}active{{end}}" id="likeCommentBtn" data-value="1"> 
+              👍
+              <span id="likeCommentCount">{{.Likes}}</span>
+            </button>
+            <button type="button" class="reaction-btn {{if eq .CurrentReaction -1}}active{{end}}" id="dislikeCommentBtn" data-value="-1"> 
+              👎 
+              <span id="dislikeCommentCount">{{.Dislikes}}</span>
+            </button>
+          </div>
+        </div>
+      </article>
+    {{else}}
+      <p>No comments yet. Start the conversation.</p>
+    {{end}}
   {{else}}
-    <p>No comments yet. Start the conversation.</p>
+    {{range .Comments}}
+      <article class="comment">
+        <div class="post-meta">
+          <span>{{.Author}}</span>
+          <time>{{.CreatedAt.Format "02 Jan 2006"}}</time>
+        </div>
+        <p>{{.Content}}</p>
+        <div class="post-stats">
+          <span>Likes: {{.Likes}}</span>
+          <span>Dislikes: {{.Dislikes}}</span>
+        </div>
+      </article>
+    {{else}}
+      <p>No comments yet. Start the conversation.</p>
+    {{end}}
   {{end}}
 </section>
 {{end}}

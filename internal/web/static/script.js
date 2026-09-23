@@ -74,14 +74,12 @@ function displayError(msg, type) {
     
 }
 
+
 const reactions = document.getElementById("reaction-buttons");
 
 if (reactions) {
     const postID = reactions.dataset.postId;
-    console.log(postID)
-
     const likeBtn = document.getElementById("likeBtn");
-    console.log(likeBtn)
     const dislikeBtn = document.getElementById("dislikeBtn");
 
     const likeCount = document.getElementById("likeCount");
@@ -110,8 +108,8 @@ if (reactions) {
         likeCount.textContent = data.likes;
         dislikeCount.textContent = data.dislikes;
 
-        likeBtn.classList.toggle("active", data.user_reaction === 1);
-        dislikeBtn.classList.toggle("active", data.user_reaction === -1);
+        likeBtn.classList.toggle("active", data.reaction_to_post === 1);
+        dislikeBtn.classList.toggle("active", data.reaction_to_post === -1);
     }
 
     likeBtn.addEventListener("click", () => {
@@ -124,3 +122,53 @@ if (reactions) {
     });    
 }
 
+const reactionsOnComment = document.querySelectorAll(".reaction-buttons-comments");
+
+if (reactionsOnComment) {
+    async function react(value, commentID, likeCount, dislikeCount, likeBtn, dislikeBtn) {
+        const response = await fetch(`/comment/${commentID}/reaction`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ value })
+        });
+
+        if (!response.ok) {
+            console.error("Failed to update reaction");
+            const error = await response.text();
+            console.error("Reaction failed:", response.status, error);
+            return;
+        }
+
+        const data = await response.json();
+
+        likeCount.textContent = data.likes;
+        dislikeCount.textContent = data.dislikes;
+
+        likeBtn.classList.toggle("active", data.reaction_to_comment === 1);
+        dislikeBtn.classList.toggle("active", data.reaction_to_comment === -1);
+    }
+
+    reactionsOnComment.forEach((reaction) => {
+        const commentID = reaction.dataset.commentId;
+        const likeCount = reaction.querySelector("#likeCommentCount");
+        const dislikeCount = reaction.querySelector("#dislikeCommentCount");
+        const likeBtn = reaction.querySelector("#likeCommentBtn");
+        const dislikeBtn = reaction.querySelector("#dislikeCommentBtn");
+
+        if (likeBtn) {
+            likeBtn.addEventListener("click", () => {
+                react(1, commentID, likeCount, dislikeCount, likeBtn, dislikeBtn);
+            });
+        }
+
+        if (dislikeBtn) {
+            dislikeBtn.addEventListener("click", () => {
+                react(-1, commentID, likeCount, dislikeCount, likeBtn, dislikeBtn);
+            });
+        }
+
+
+    });
+}

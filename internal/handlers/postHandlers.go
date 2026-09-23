@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"fmt"
+	"time"
 )
 
 type PostListResp struct {
@@ -25,6 +27,22 @@ type CreatePostRequest struct {
 
 type CreatePostResp struct {
 	PostID int64 `json:"id"`
+}
+
+type FullComment struct {
+	ID        int64
+	Content   string
+	CreatedAt time.Time
+	Author    string
+	Likes     int
+	Dislikes  int	
+	CurrentReaction int
+}
+
+type CommentWithReaction struct {
+	UserID int
+	CommentID int64
+	Value int
 }
 
 // NewPostForm renders the page where a signed-in user writes a post.
@@ -181,27 +199,75 @@ func (app *App) PostPage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//current reaction to the post
-	var userReaction int
+	var reactionToPost int
 
 	if app.currentUser(r) != nil {
 		err = app.db.QueryRow(`
 			SELECT value
 			FROM post_reactions
 			WHERE user_id = ? AND post_id = ?
-		`, app.currentUser(r).ID, post.ID).Scan(&userReaction)
+		`, app.currentUser(r).ID, post.ID).Scan(&reactionToPost)
 
 		if err == sql.ErrNoRows {
-			userReaction = 0
+			reactionToPost = 0
 		} else if err != nil {
 			return
 		}	
 	}
 
+	//current reactions to the comments
+	reactionsToComments := make(map[int64]int)
+	finalComments := []FullComment{}
+
+	if app.currentUser(r) != nil {
+		rows, err:= app.db.Query(`
+			SELECT user_id, comment_id, value
+			FROM comment_reactions
+			WHERE user_id = ?
+		`, app.currentUser(r).ID)
+
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		defer rows.Close()
+
+		var commentsWithReaction []CommentWithReaction
+		for rows.Next() {
+			c := &CommentWithReaction{}
+			err := rows.Scan(&c.UserID, &c.CommentID, &c.Value)
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+			commentsWithReaction = append(commentsWithReaction, *c)
+		}		
+
+		for _, c := range commentsWithReaction {
+			reactionsToComments[c.CommentID] = c.Value
+		}
+
+		for _, c := range comments {
+			finalComment := FullComment{
+				ID: c.ID,
+				Content: c.Content,
+				CreatedAt: c.CreatedAt, 
+				Author: c.Author,
+				Likes: c.Likes,
+				Dislikes: c.Dislikes,
+				CurrentReaction: reactionsToComments[c.ID],
+			}
+			finalComments = append(finalComments, finalComment)
+		}
+
+	}
+
+
 	app.render(w, "post.html", map[string]any{
 		"User":     app.currentUser(r),
 		"Post":     post,
-		"Comments": comments,
-		"UserReaction": userReaction,
+		"Comments": finalComments,
+		"ReactionToPost": reactionToPost,
 	})
 }
 
