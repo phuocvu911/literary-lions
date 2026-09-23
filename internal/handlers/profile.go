@@ -2,7 +2,9 @@ package handlers
 
 import (
 	"net/http"
+    "net/mail"
     "lions/internal/models"
+    "lions/internal/database"
     "io"
     "fmt"	
     "strings"
@@ -18,6 +20,13 @@ type PageData struct {
     Content Content
     PostCount int 
     CommentCount int
+}
+
+type EditPageData struct {
+    User *models.User
+    UserName string
+    Email    string
+    Error string
 }
 
 func (app *App) ProfileHandler(w http.ResponseWriter, r *http.Request) {
@@ -98,55 +107,102 @@ func (app *App) ProfileUploadHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *App) ProfileUpdateHandler(w http.ResponseWriter, r *http.Request) {
-    if r.Method != http.MethodPost {
-        http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-        return
-    }
-    
-    if app.currentUser(r) == nil {
-        http.Error(w, "Not signed in user", http.StatusUnauthorized)
-        return
-    }
+	user := app.currentUser(r)
 
-    user := app.currentUser(r)
-    userName := r.FormValue("username")
-    email := r.FormValue("email")
-    password := r.FormValue("password")
- 
-    //if password was not supplied
-    if strings.TrimSpace(password) == "" {
-        _, err := app.db.Exec(`
-            UPDATE users
-            SET username = ?, email = ?
-            WHERE id = ?
-        `, userName, email, user.ID)
-        
-        if err != nil {
-            fmt.Println(err)
-            http.Error(w, "Could not update the profile", http.StatusInternalServerError)
+	if user == nil {
+		http.Error(w, "Not signed in", http.StatusUnauthorized)
+		return
+	}
+
+	switch r.Method {
+	case http.MethodGet:
+		// Show the form
+		data := EditPageData{
+			User:     user,
+			UserName: user.Username,
+			Email:    user.Email,
+		}
+
+		app.render(w, "edit-profile.html", data)
+
+	case http.MethodPost:
+		// Process the form
+		username := strings.TrimSpace(r.FormValue("username"))
+		email := strings.TrimSpace(r.FormValue("email"))
+        currentPassword := r.FormValue("current-password")
+		newPassword := r.FormValue("new-password")
+
+        //fail scenarios closure
+        fail := func(msg string) {
+            w.WriteHeader(http.StatusUnprocessableEntity)
+            app.render(w, "edit-profile.html", EditPageData{
+                User:     user,
+                UserName: username,
+                Email:    email,
+                Error:    msg,
+            })
+        }
+
+        //validate input
+        if _, err := mail.ParseAddress(email); err != nil || len(email) > maxCredentials {
+            fail("Please enter a valid email address.")
             return
         }
-    }     
+        if len(username) < 3 || len(username) > maxCredentials || strings.ContainsAny(username, " \t\v\n@") {
+            fail("Username must be at least 3 characters, with no spaces or '@'.")
+            return
+        }
 
-	hash, err := app.hasher.Hash(password)
-	if err != nil {
-		app.serverError(w, err)
-		return
-	}    
+        //check email and password match
+        userCheck, errtwo := database.UserByEmail(app.db, email)
+        if errtwo == nil {
+            if isRightPassword := app.hasher.Verify(currentPassword, userCheck.PasswordHash); !isRightPassword {
+                fail("Email or password is incorrect.")
+                return
+            }
+        }
+        
+        if newPassword != "" {
+            if len(newPassword) < 8 || len(newPassword) > maxCredentials {
+                fail("Password must be at least 8 characters.")
+                return
+            }
+        }    
 
-    _, err = app.db.Exec(`
-        UPDATE users
-        SET username = ?, email = ?, password_hash = ?
-        WHERE id = ?
-    `, userName, email, hash, user.ID)
+		var err error
 
-    if err != nil {
-        fmt.Println(err)
-        http.Error(w, "Could not update the profile", http.StatusInternalServerError)
-        return
-    }
-            
-    http.Redirect(w, r, "/profile", http.StatusSeeOther)
+		if strings.TrimSpace(newPassword) == "" {
+			_, err = app.db.Exec(`
+				UPDATE users
+				SET username = ?, email = ?
+				WHERE id = ?
+			`, username, email, user.ID)
+		} else {
+			hash, hashErr := app.hasher.Hash(newPassword)
+			if hashErr != nil {
+				app.serverError(w, hashErr)
+				return
+			}
+
+			_, err = app.db.Exec(`
+				UPDATE users
+				SET username = ?, email = ?, password_hash = ?
+				WHERE id = ?
+			`, username, email, hash, user.ID)
+		}
+
+		if err != nil {
+			fmt.Println(err)
+			http.Error(w, "Could not update the profile", http.StatusInternalServerError)
+			return
+		}
+
+		// Redirect once done
+		http.Redirect(w, r, "/profile", http.StatusSeeOther)
+
+	default:
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+	}
 }
 
 func (app *App) ProfileImageHandler(w http.ResponseWriter, r *http.Request) {

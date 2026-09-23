@@ -1,5 +1,8 @@
-{{define "edit-profile"}}
+{{define "title"}}  
+    Edit Profile 
+{{end}}
 
+{{define "content"}}
 <div class="edit-profile">
     <h2>Edit profile</h2>
     <p class="subtitle">Update your account information</p>
@@ -8,7 +11,7 @@
         <h4>Current details</h4>
         <div class="current-row">
             <span>Username</span>
-            {{.Username}}
+            {{.UserName}}
         </div>
         <div class="current-row">
             <span>Email</span>
@@ -16,12 +19,12 @@
         </div>
     </div>
 
+    {{if .Error}}<p class="error">{{.Error}}</p>{{end}}
     <form 
         id="profile-update"
         name = "edit-form"
         action="/profile/update"       
-        method="POST" 
-        onsubmit="return validateForm()"
+        method="POST"
     >
         <h4>Change details</h4>      
         <div class="form-group">
@@ -30,7 +33,7 @@
                 type="text"
                 id="username"
                 name="username"
-                value="{{.Username}}"
+                value="{{.UserName}}"
             >
         </div>
         <div class="form-group">
@@ -43,11 +46,20 @@
             >
         </div>
         <div class="form-group">
-            <label for="password">New password</label>
+            <label for="current-password">Current Password</label>
             <input
                 type="password"
-                id="password"
-                name="password"
+                id="current-password"
+                name="current-password"
+                placeholder=""
+            >
+        </div>        
+        <div class="form-group">
+            <label for="new-password">New password</label>
+            <input
+                type="password"
+                id="new-password"
+                name="new-password"
                 placeholder=""
             >
         </div>
@@ -56,5 +68,4 @@
         </div>
     </form>
 </div>
-
 {{end}}

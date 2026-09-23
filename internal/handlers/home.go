@@ -29,36 +29,45 @@ type PostWithReaction struct {
 
 func (app *App) HandleHome(w http.ResponseWriter, r *http.Request) {
 	user := app.currentUser(r)
+	loggedIn := false
+	if user != nil {
+		loggedIn = true
+	}
+
 	posts, err := database.ListPosts(app.db, 20, 0)
 	if err != nil {
 		app.serverError(w, err)
 		return
 	}
 
-	rows, err:= app.db.Query(`
-		SELECT user_id, post_id, value
-		FROM post_reactions
-		WHERE user_id = ?
-	`, app.currentUser(r).ID)
+	//all post reactions
+	reactionsToPosts := make(map[int64]int)
 
-	if err != nil {
-		return
-	}
-	defer rows.Close()
+	if loggedIn {
+		rows, err:= app.db.Query(`
+			SELECT user_id, post_id, value
+			FROM post_reactions
+			WHERE user_id = ?
+		`, app.currentUser(r).ID)
 
-	var postsWithReaction []PostWithReaction
-	for rows.Next() {
-		p := &PostWithReaction{}
-		err := rows.Scan(&p.UserID, &p.PostID, &p.Value)
 		if err != nil {
 			return
 		}
-		postsWithReaction = append(postsWithReaction, *p)
-	}		
+		defer rows.Close()
 
-	reactionsToPosts := make(map[int64]int)
-	for _, p := range postsWithReaction {
-		reactionsToPosts[p.PostID] = p.Value
+		var postsWithReaction []PostWithReaction
+		for rows.Next() {
+			p := &PostWithReaction{}
+			err := rows.Scan(&p.UserID, &p.PostID, &p.Value)
+			if err != nil {
+				return
+			}
+			postsWithReaction = append(postsWithReaction, *p)
+		}		
+
+		for _, p := range postsWithReaction {
+			reactionsToPosts[p.PostID] = p.Value
+		}
 	}
 
 	var fullposts []FullPost
@@ -86,6 +95,7 @@ func (app *App) HandleHome(w http.ResponseWriter, r *http.Request) {
 	}
 	app.render(w, "home.html", map[string]any{
 		"User":       user,
+		"LoggedIn": loggedIn,		
 		"Posts":      fullposts,
 		"Categories": categories,
 	})

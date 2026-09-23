@@ -4,14 +4,6 @@
 
 {{define "content"}}
     <div class="profile-container">
-        <!-- Popup Modal -->
-        <div id="edit-modal" class="modal">
-            <div class="modal-content">
-                <span class="close">&times;</span>
-                    {{template "edit-profile" .User}}
-            </div>
-        </div>
-
         <div class="user-card">
             <div class="card-image">
                 <form
@@ -43,7 +35,10 @@
                 <p><strong>Member since:</strong> {{.User.CreatedAt.Format "02-01-06"}}</p>
             </div>
             <div class="card-actions">
-                <button id="edit-profile" class="btn-profile">Edit profile</button>
+                <button id="edit-profile" class="btn-profile" type="button"
+                        onclick="window.location.href='/profile/update'">
+                    Edit profile
+                </button>
                 <button class="btn-profile btn-danger">Delete profile</button>
             </div>            
         </div>

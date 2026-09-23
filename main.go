@@ -65,7 +65,8 @@ func main() {
 	//register endpoints here
 	mux.HandleFunc("/profile", app.ProfileHandler)
 	mux.HandleFunc("/profile/upload", app.ProfileUploadHandler)
-	mux.HandleFunc("/profile/update", app.ProfileUpdateHandler)
+	mux.HandleFunc("GET /profile/update", app.ProfileUpdateHandler)
+	mux.HandleFunc("POST /profile/update", app.ProfileUpdateHandler)
 	mux.HandleFunc("/profile/image", app.ProfileImageHandler)
 
 	mux.HandleFunc("/", app.NotFoundHandler) //every unregistered endpoints go here
