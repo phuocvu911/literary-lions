@@ -11,6 +11,31 @@ if (profileImage) {
     });
 }
 
+const deleteProfile = document.getElementById('delete-profile')
+
+if (deleteProfile) {
+    deleteProfile.addEventListener('click', async function () {
+        if (!confirm('Are you sure you want to delete your profile?')) {
+            return;
+        }
+
+        try {
+            const response = await fetch('/profile/delete', {
+                method: 'DELETE'
+            });
+
+            if (response.ok) {
+                window.location.href = '/';
+            } else {
+                alert('Failed to delete profile.');
+            }
+        } catch (error) {
+            console.error(error);
+            alert('Something went wrong.');
+        }
+    });
+}
+
 const reactionsOnPost = document.querySelectorAll(".reaction-buttons-posts");
 
 if (reactionsOnPost) {

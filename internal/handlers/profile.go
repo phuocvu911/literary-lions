@@ -221,12 +221,43 @@ func (app *App) ProfileImageHandler(w http.ResponseWriter, r *http.Request) {
     `, ID).Scan(&imageData)
 
     if err != nil {
-        http.Error(w, "Image not found", http.StatusNotFound)
+        fmt.Println("Database error:", err)
+        return
+    } 
+    
+    if len(imageData) == 0 {
+        fmt.Println("No profile image, serving default")
+        http.ServeFile(w, r, "internal/web/static/profile.jpeg")
         return
     }
 
+    
     w.Header().Set("Content-Type", "image/jpeg")
     w.Write(imageData)
+}
+
+func (app *App) ProfileDeleteHandler(w http.ResponseWriter, r *http.Request) {
+    if r.Method != http.MethodDelete {
+        http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)        
+        fmt.Println("here")
+        return
+    }
+
+    if app.currentUser(r) == nil {
+        http.Redirect(w, r, "/", http.StatusSeeOther)
+        return
+    }
+
+    user := app.currentUser(r)
+
+    sql := `DELETE FROM users WHERE id = ?`
+
+    _, err := app.db.Exec(sql, user.ID)
+    if err != nil {
+        return
+    }
+    
+    http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
 //helper

@@ -15,7 +15,7 @@
                     <label for="profile-image">
                         <img
                             class="main-profile"
-                            src="/profile/image"
+                            src="/profile/image?v={{.User.ID}}"
                             alt="Profile picture"
                         >
                     </label>
@@ -26,6 +26,7 @@
                         name="profile_image"
                         accept="image/*"
                         hidden
+                        onchange="this.form.submit()"
                     >
                 </form>
             </div>
@@ -39,7 +40,9 @@
                         onclick="window.location.href='/profile/update'">
                     Edit profile
                 </button>
-                <button class="btn-profile btn-danger">Delete profile</button>
+                <button id="delete-profile" class="btn-profile btn-danger">
+                    Delete profile
+                </button>
             </div>            
         </div>
         <!-- I can put links to posts and comments-->
