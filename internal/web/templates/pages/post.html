@@ -19,14 +19,14 @@
   <p class="post-content">{{.Post.Content}}</p>
   <div class="post-stats">
     {{if .User}}
-      <div id="reaction-buttons"  class="reaction-buttons" data-post-id="{{.Post.ID}}">
-        <button type="button" class="reaction-btn {{if eq .ReactionToPost 1}}active{{end}}" id="likeBtn" data-value="1"> 
+      <div id="reaction-buttons-posts"  class="reaction-buttons-posts" data-post-id="{{.Post.ID}}">
+        <button type="button" class="reaction-btn {{if eq .ReactionToPost 1}}active{{end}}" id="likePostBtn" data-value="1"> 
           👍
-          <span id="likeCount">{{.Post.Likes}}</span>
+          <span id="likePostCount">{{.Post.Likes}}</span>
         </button>
-        <button type="button" class="reaction-btn {{if eq .ReactionToPost -1}}active{{end}}" id="dislikeBtn" data-value="-1"> 
+        <button type="button" class="reaction-btn {{if eq .ReactionToPost -1}}active{{end}}" id="dislikePostBtn" data-value="-1"> 
           👎 
-          <span id="dislikeCount">{{.Post.Dislikes}}</span>
+          <span id="dislikePostCount">{{.Post.Dislikes}}</span>
         </button>
       </div>
       <span>Comments: {{.Post.CommentCount}}</span>

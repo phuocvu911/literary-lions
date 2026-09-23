@@ -75,25 +75,16 @@ function displayError(msg, type) {
 }
 
 
-const reactions = document.getElementById("reaction-buttons");
+const reactionsOnPost = document.querySelectorAll(".reaction-buttons-posts");
 
-if (reactions) {
-    const postID = reactions.dataset.postId;
-    const likeBtn = document.getElementById("likeBtn");
-    const dislikeBtn = document.getElementById("dislikeBtn");
-
-    const likeCount = document.getElementById("likeCount");
-    const dislikeCount = document.getElementById("dislikeCount");
-
-    async function react(value) {
+if (reactionsOnPost) {
+    async function react(value, postID, likeCount, dislikeCount, likeBtn, dislikeBtn) {
         const response = await fetch(`/post/${postID}/reaction`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
             },
-            body: JSON.stringify({
-                value: value
-            })
+            body: JSON.stringify({ value })
         });
 
         if (!response.ok) {
@@ -112,14 +103,27 @@ if (reactions) {
         dislikeBtn.classList.toggle("active", data.reaction_to_post === -1);
     }
 
-    likeBtn.addEventListener("click", () => {
-        console.log("reacted")
-        react(1);
-    });
+    reactionsOnPost.forEach((reaction) => {
+        const postID = reaction.dataset.postId;
+        const likeCount = reaction.querySelector("#likePostCount");
+        const dislikeCount = reaction.querySelector("#dislikePostCount");
+        const likeBtn = reaction.querySelector("#likePostBtn");
+        const dislikeBtn = reaction.querySelector("#dislikePostBtn");
 
-    dislikeBtn.addEventListener("click", () => {
-        react(-1);
-    });    
+        if (likeBtn) {
+            likeBtn.addEventListener("click", () => {
+                react(1, postID, likeCount, dislikeCount, likeBtn, dislikeBtn);
+            });
+        }
+
+        if (dislikeBtn) {
+            dislikeBtn.addEventListener("click", () => {
+                react(-1, postID, likeCount, dislikeCount, likeBtn, dislikeBtn);
+            });
+        }
+
+
+    });  
 }
 
 const reactionsOnComment = document.querySelectorAll(".reaction-buttons-comments");
