@@ -31,6 +31,13 @@ type EditPageData struct {
     Error string
 }
 
+type EditPageData struct {
+    User *models.User
+    UserName string
+    Email    string
+    Error string
+}
+
 func (app *App) ProfileHandler(w http.ResponseWriter, r *http.Request) {
     
     if app.currentUser(r) == nil {
