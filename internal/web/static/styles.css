@@ -677,7 +677,7 @@ a {
 }
 
 /* -------------------------------------------------------
-   POST LIST — COMPACT FEED
+   POST LIST 
 ------------------------------------------------------- */
 
 .post-card {
@@ -697,7 +697,6 @@ a {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  gap: 1rem;
 }
 
 .post-top h2,
@@ -753,11 +752,37 @@ a {
 
 .post-content {
   margin: 0.55rem 0;
+  overflow-wrap: anywhere;
+}
+
+.feed .post-content {
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
   overflow: hidden;
-  overflow-wrap: anywhere;
+}
+
+.post-detail,
+.comments {
+  max-width: 760px;
+}
+
+.post-detail .post-content {
+  display: block;
+  overflow: visible;
+}
+
+.comments textarea {
+  display: block;
+  width: 100%;
+  max-width: 600px;
+  min-height: 100px;
+  margin: 0.5rem 0 0.8rem;
+}
+
+.comment {
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--border);
 }
 
 .post-stats {
