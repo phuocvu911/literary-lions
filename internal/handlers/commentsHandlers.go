@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"io"
+	"fmt"
 )
 
 type CommentListResponse struct {
@@ -42,7 +44,10 @@ func (app *App) CreateComment(w http.ResponseWriter, r *http.Request, user *mode
 		return
 	}
 
-	commentID, err := database.CreateComment(app.db, user.ID, postID, comment.Content)
+	//test
+	fileContent := models.File{}
+
+	commentID, err := database.CreateComment(app.db, user.ID, postID, comment.Content, fileContent)
 	if err != nil {
 		writeError(w, errors.New("failed to create comment"), http.StatusInternalServerError)
 		return
@@ -66,7 +71,30 @@ func (app *App) CreateCommentFromForm(w http.ResponseWriter, r *http.Request, us
 		return
 	}
 
-	if _, err := database.CreateComment(app.db, user.ID, postID, content); err != nil {
+	//get file data
+	fileContent := models.File{
+	}
+
+    file, header, err := r.FormFile("file")
+    if err == nil {
+		defer file.Close()
+   
+		fileData, err := io.ReadAll(file)
+		if err != nil {
+			writeError(w, errors.New("Could not read the file"), http.StatusBadRequest)
+			return
+		}		
+
+		fileContent.Name = header.Filename
+		fileContent.ContentType = header.Header.Get("Content-Type")
+		fileContent.Data = fileData
+	} else if !errors.Is(err, http.ErrMissingFile) {
+		writeError(w, errors.New("Could not get the file"), http.StatusBadRequest)
+		return
+	}
+		
+	if _, err := database.CreateComment(app.db, user.ID, postID, content, fileContent); err != nil {
+		fmt.Println(err)
 		writeError(w, errors.New("failed to create comment"), http.StatusInternalServerError)
 		return
 	}
@@ -85,6 +113,8 @@ func (app *App) ListComment(w http.ResponseWriter, r *http.Request) {
 		writeError(w, err, http.StatusBadRequest)
 		return
 	}
+	
+
 	if _, err := database.GetPostByID(app.db, postID); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			writeError(w, errors.New("post not found"), http.StatusNotFound)

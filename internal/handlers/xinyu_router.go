@@ -4,6 +4,7 @@ import "net/http"
 
 func (app *App) Router(mux *http.ServeMux) {
 	// Public forum routes
+	mux.HandleFunc("GET /files/{id}", app.File)
 	mux.HandleFunc("GET /posts", app.ListPosts)
 	mux.HandleFunc("GET /posts/search", app.SearchPost)
 	mux.HandleFunc("GET /posts/{id}", app.GetPostByID)

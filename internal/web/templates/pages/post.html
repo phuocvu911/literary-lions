@@ -41,9 +41,16 @@
 <section class="comments">
   <h2>Comments</h2>
   {{if .User}}
-    <form method="post" action="/post/{{.Post.ID}}/comments">
+    <form method="post" action="/post/{{.Post.ID}}/comments" enctype="multipart/form-data">
       <label for="content">Add a comment</label>
       <textarea id="content" name="content" rows="4" required></textarea>
+      <label for="file">Attach a file (optional)</label>
+        <input
+          type="file"
+          id="file"
+          name="file"
+          accept="image/jpeg,image/png,image/webp,application/pdf">
+
       <button type="submit" class="btn btn-primary">Post comment</button>
     </form>
   {{else}}
@@ -69,6 +76,13 @@
               <span id="dislikeCommentCount">{{.Dislikes}}</span>
             </button>
           </div>
+        </div>
+        <div class="comment-files">
+          {{range .CommentFiles}}
+              <a href="/files/{{.ID}}" download="{{.Filename}}" class="file-attachment">
+                  📎 {{.Filename}}
+              </a>
+          {{end}}
         </div>
       </article>
     {{else}}

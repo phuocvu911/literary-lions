@@ -684,6 +684,32 @@ a {
   transform: translateY(1px);
 }
 
+/*files*/
+.comment-files {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.file-attachment {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 9px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background: #f7f7f7;
+  color: #444;
+  text-decoration: none;
+  font-size: 13px;
+}
+
+.file-attachment:hover {
+  background: #eee;
+}
+
+
 /* -------------------------------------------------------
    RESPONSIVE
 ------------------------------------------------------- */

@@ -42,3 +42,13 @@ type Comment struct {
 	Likes     int
 	Dislikes  int
 }
+
+// File represented in a comment section
+type File struct {
+	ID          int64
+	CommentID   int64
+	Name        string
+	ContentType string
+	Data        []byte
+	CreatedAt   time.Time
+}
