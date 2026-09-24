@@ -479,7 +479,8 @@ a {
 /* Post links */
 
 .posts a,
-.comments a {
+.comments a, 
+.liked-posts a{
   color: #222;
   text-decoration: none;
   transition: color 0.2s;

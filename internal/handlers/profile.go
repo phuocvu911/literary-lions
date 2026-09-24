@@ -13,6 +13,7 @@ import (
 type Content struct {
     Posts []*models.Post
     Comments []*models.Comment
+    LikedPosts []*FullPost
 }
 
 type PageData struct {
@@ -20,6 +21,7 @@ type PageData struct {
     Content Content
     PostCount int 
     CommentCount int
+    LikedCount int
 }
 
 type EditPageData struct {
@@ -49,6 +51,7 @@ func (app *App) ProfileHandler(w http.ResponseWriter, r *http.Request) {
     }
 
     posts := app.GetUserPosts(user.ID)
+    likedPosts := app.GetUserLikedPosts(user.ID)
     comments := app.GetUserComments(user.ID)
 
     data := PageData{
@@ -56,9 +59,11 @@ func (app *App) ProfileHandler(w http.ResponseWriter, r *http.Request) {
         Content: Content{
             Posts: posts, 
             Comments: comments,
+            LikedPosts: likedPosts,
         },
         PostCount: len(posts), 
         CommentCount: len(comments),
+        LikedCount: len(likedPosts),
     }
 
     app.render(w, "profile.html", data)
@@ -281,6 +286,54 @@ func (app *App) GetUserPosts(userId int64) []*models.Post{
             &p.Title, 
             &p.Content, 
             &p.CreatedAt,          
+        ); err != nil {
+            fmt.Println(err)
+            return nil
+        }
+
+        posts = append(posts, p)
+    }
+
+    if err = rows.Err(); err != nil {
+        fmt.Println(err)
+        return nil 
+    }
+
+    return posts
+}
+
+func (app *App) GetUserLikedPosts(userId int64) []*FullPost{
+    queryLikedPosts := `
+        SELECT
+            posts.id AS post_id,
+            posts.title AS post_title,
+            posts.content AS post_content,
+            posts.created_at AS post_created_at,
+            post_reactions.value AS reaction
+        FROM posts
+        JOIN post_reactions
+            ON post_reactions.post_id = posts.id
+        WHERE post_reactions.user_id = ?;
+    `
+
+    rows, err := app.db.Query(queryLikedPosts, userId)
+    if err != nil {
+        fmt.Println(err)
+        return nil
+    }
+    defer rows.Close()
+
+    posts := []*FullPost{}
+
+    for rows.Next() {
+        p := &FullPost{}
+
+        if err := rows.Scan(
+            &p.ID,
+            &p.Title, 
+            &p.Content, 
+            &p.CreatedAt,         
+            &p.CurrentReaction,  
         ); err != nil {
             fmt.Println(err)
             return nil
