@@ -66,16 +66,22 @@ CREATE TABLE IF NOT EXISTS comment_reactions (
 );
 
 CREATE TABLE IF NOT EXISTS files (
-    id INTEGER PRIMARY KEY,
-    user_id INTEGER NOT NULL,
-    filename TEXT NOT NULL,
+    id           INTEGER PRIMARY KEY,
+    comment_id   INTEGER NOT NULL REFERENCES comments(id) ON DELETE CASCADE,
+    filename     TEXT NOT NULL,
     content_type TEXT NOT NULL,
-    size INTEGER NOT NULL,
-    data BLOB NOT NULL,
-    created_at DATETIME NOT NULL,
+    data         BLOB NOT NULL,
+    created_at   TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    FOREIGN KEY (user_id) REFERENCES users(id)
+    CHECK (length(data) > 0 AND length(data) <= 10 * 1024 * 1024),
+    CHECK (content_type IN (
+        'image/jpeg',
+        'image/png',
+        'image/webp',
+        'application/pdf'
+    ))
 );
+
 CREATE TABLE IF NOT EXISTS password_resets (
     token      TEXT PRIMARY KEY,
     user_id    INTEGER NOT NULL,

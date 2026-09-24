@@ -1,0 +1,29 @@
+{{define "filters"}}
+
+    <form method="GET" action="/posts">
+
+        <input
+            type="search"
+            name="q"
+            placeholder="Search posts..."
+        >
+
+        <select name="sort">
+            <option value="newest">Newest</option>
+            <option value="oldest">Oldest</option>
+            <option value="most_liked">Most liked</option>
+            <option value="most_commented">Most commented</option>
+        </select>
+
+        <select name="time">
+            <option value="">Any time</option>
+            <option value="today">Today</option>
+            <option value="week">This week</option>
+            <option value="month">This month</option>
+            <option value="year">This year</option>
+        </select>
+
+        <button type="submit">Apply</button>
+
+    </form>
+{{end}}    

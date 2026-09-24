@@ -4,14 +4,6 @@
 
 {{define "content"}}
     <div class="profile-container">
-        <!-- Popup Modal -->
-        <div id="edit-modal" class="modal">
-            <div class="modal-content">
-                <span class="close">&times;</span>
-                    {{template "edit-profile" .User}}
-            </div>
-        </div>
-
         <div class="user-card">
             <div class="card-image">
                 <form
@@ -23,7 +15,7 @@
                     <label for="profile-image">
                         <img
                             class="main-profile"
-                            src="/profile/image"
+                            src="/profile/image?v={{.User.ID}}"
                             alt="Profile picture"
                         >
                     </label>
@@ -34,6 +26,7 @@
                         name="profile_image"
                         accept="image/*"
                         hidden
+                        onchange="this.form.submit()"
                     >
                 </form>
             </div>
@@ -43,8 +36,13 @@
                 <p><strong>Member since:</strong> {{.User.CreatedAt.Format "02-01-06"}}</p>
             </div>
             <div class="card-actions">
-                <button id="edit-profile" class="btn-profile">Edit profile</button>
-                <button class="btn-profile btn-danger">Delete profile</button>
+                <button id="edit-profile" class="btn-profile" type="button"
+                        onclick="window.location.href='/profile/update'">
+                    Edit profile
+                </button>
+                <button id="delete-profile" class="btn-profile btn-danger">
+                    Delete profile
+                </button>
             </div>            
         </div>
         <!-- I can put links to posts and comments-->
@@ -58,7 +56,7 @@
                 <span>Comments</span>
             </div>            
             <div class="stat">
-                <h2><i data-lucide="heart"></i> 300 </h2>
+                <h2><i data-lucide="heart"></i> {{.LikedCount}} </h2>
                 <span>Likes</span>
             </div>                      
         </div>        
@@ -68,7 +66,7 @@
                 <ul class="posts">
                     {{range .Content.Posts}}
                         <li>
-                            <a href="#">
+                            <a href="/post/{{.ID}}">
                                 {{.Title}}
                             </a>
                         </li>
@@ -84,7 +82,9 @@
                 <ul class="comments">
                     {{range .Content.Comments}}
                         <li>
-                            {{.Content}}
+                            <a href="/post/{{.ID}}/comments">
+                                {{.Content}}
+                            </a>
                         </li>
                     {{else}}
                         <li class="empty">
@@ -96,9 +96,11 @@
             <div class="user-section">
                 <h2>Liked Posts</h2>
                 <ul class="liked-posts">
-                    {{range .Content.Comments}}
+                    {{range .Content.LikedPosts}}
                         <li>
-                            {{.Content}}
+                            <a href="/post/{{.ID}}">
+                                {{.Content}}
+                            </a>
                         </li>
                     {{else}}
                         <li class="empty">
@@ -108,32 +110,6 @@
                 </ul>
             </div>                  
         </div>
-    </div>
-
-    <script>
-        document.getElementById("profile-image").addEventListener("change", function () {
-            if (this.files.length > 0) {
-                document.getElementById("profile-upload").submit();
-            }
-        });
-
-        const editBtn = document.getElementById("edit-profile");
-        const modal = document.getElementById("edit-modal");
-        const closeBtn = document.querySelector(".close");
-
-        editBtn.addEventListener("click", () => {
-            modal.style.display = "block";
-        });
-
-        closeBtn.addEventListener("click", () => {
-            modal.style.display = "none";
-        });
-
-        window.addEventListener("click", (e) => {
-            if (e.target === modal) {
-                modal.style.display = "none";
-            }
-        });      
-    </script>    
+    </div> 
 
 {{end}}

@@ -4,6 +4,7 @@ import "net/http"
 
 func (app *App) Router(mux *http.ServeMux) {
 	// Public forum routes
+	mux.HandleFunc("GET /files/{id}", app.File)
 	mux.HandleFunc("GET /posts", app.ListPosts)
 	mux.HandleFunc("GET /posts/search", app.SearchPost)
 	mux.HandleFunc("GET /posts/{id}", app.GetPostByID)
@@ -15,6 +16,8 @@ func (app *App) Router(mux *http.ServeMux) {
 	mux.Handle("GET /post/new", app.RequireAuth(app.NewPostForm))
 	mux.Handle("POST /post/new", app.RequireAuth(app.CreatePostFromForm))
 	mux.Handle("POST /post/{id}/comments", app.RequireAuth(app.CreateCommentFromForm))
+	mux.Handle("POST /post/{id}/reaction", app.RequireAuth(app.ReactToPost))
+	mux.Handle("POST /comment/{id}/reaction", app.RequireAuth(app.ReactToComment))
 	//mux.Handle("POST /posts", app.RequireAuth(app.CreatePost))
 	mux.Handle("POST /posts/{id}/comments", app.RequireAuth(app.CreateComment))
 }

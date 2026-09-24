@@ -32,38 +32,87 @@
     {{end}}
   </aside>
 
-  <section class="feed">
-    <!-- latest posts -->
-    <div class="feed-header">
-    <h1>Latest posts</h1>
-  </div>
-    {{range .Posts}}
-    <article class="post-card">
-     <div class="post-top">
-    <h2><a href="/post/{{.ID}}">{{.Title}}</a></h2>
+  {{if .LoggedIn}}
+        <section class="feed">              
+          <!-- latest posts -->
+          <div class="feed-header">
+            <h1>Latest posts</h1>
+          </div>      
 
-    <div class="post-meta">
-      <span>{{.Author}}</span>
-      <time>{{.CreatedAt.Format "02 Jan 2006"}}</time>
-    </div>
-    </div>
+           <!-- filter -->
+          <div class="filters">
+            {{template "filters"}}
+          </div>
+          
+          {{range .Posts}}
+          <article class="post-card">
+          <div class="post-top">
+          <h2><a href="/post/{{.ID}}">{{.Title}}</a></h2>
 
-  <div class="post-tags">
-    {{range .Categories}}
-      <span class="post-tag">{{.Name}}</span>
-    {{end}}
-  </div>
+          <div class="post-meta">
+            <span>{{.Author}}</span>
+            <time>{{.CreatedAt.Format "02 Jan 2006"}}</time>
+          </div>
+          </div>
 
-  <p class="post-content">{{.Content}}</p>
+        <div class="post-tags">
+          {{range .Categories}}
+            <span class="post-tag">{{.Name}}</span>
+          {{end}}
+        </div>
 
-  <div class="post-stats">
-    <span>Likes: {{.Likes}}</span>
-    <span>Dislikes: {{.Dislikes}}</span>
-    <span>Comments: {{.CommentCount}}</span>
-  </div>
-</article>
-    {{end}}
-  </section>
+        <p class="post-content">{{.Content}}</p>
+
+        <div class="post-stats">
+          <div id="reaction-buttons-posts"  class="reaction-buttons-posts" data-post-id="{{.ID}}">
+            <button type="button" class="reaction-btn {{if eq .CurrentReaction 1}}active{{end}}" id="likePostBtn" data-value="1"> 
+              👍
+              <span id="likePostCount">{{.Likes}}</span>
+            </button>
+            <button type="button" class="reaction-btn {{if eq .CurrentReaction -1}}active{{end}}" id="dislikePostBtn" data-value="-1"> 
+              👎 
+              <span id="dislikePostCount">{{.Dislikes}}</span>
+            </button>
+          </div>
+          <span>Comments: {{.CommentCount}}</span>
+        </div>
+      </article>
+          {{end}}
+        </section>
+  {{else}}
+        <section class="feed">
+          <!-- latest posts -->
+          <div class="feed-header">
+          <h1>Latest posts</h1>
+        </div>
+          {{range .Posts}}
+          <article class="post-card">
+          <div class="post-top">
+          <h2><a href="/post/{{.ID}}">{{.Title}}</a></h2>
+
+          <div class="post-meta">
+            <span>{{.Author}}</span>
+            <time>{{.CreatedAt.Format "02 Jan 2006"}}</time>
+          </div>
+          </div>
+
+        <div class="post-tags">
+          {{range .Categories}}
+            <span class="post-tag">{{.Name}}</span>
+          {{end}}
+        </div>
+
+        <p class="post-content">{{.Content}}</p>
+
+        <div class="post-stats">
+          <span>Likes: {{.Likes}}</span>
+          <span>Dislikes: {{.Dislikes}}</span>
+          <span>Comments: {{.CommentCount}}</span>
+        </div>
+          </article>
+          {{end}}
+        </section>
+  {{end}}
 </div>
 
 {{end}}

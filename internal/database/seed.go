@@ -346,6 +346,7 @@ func Seed(db *sql.DB) error {
 	// Files
 	// ------------------------------------------------------------
 
+	/*
 	for i, user := range users {
 		filename := fmt.Sprintf("avatar-%d.txt", i+1)
 		content := fmt.Appendf(nil,
@@ -375,7 +376,7 @@ func Seed(db *sql.DB) error {
 		if err != nil {
 			return fmt.Errorf("insert file: %w", err)
 		}
-	}
+	}*/
 
 	// ------------------------------------------------------------
 	// Commit

@@ -56,7 +56,7 @@ a {
 }
 
 .container {
-  max-width: 960px;
+  max-width: 1200px;
   margin: 1.5rem auto;
   padding: 0 1rem;
 }
@@ -429,6 +429,9 @@ a {
   border: 1px solid #ddd;
   border-radius: 12px;
   min-width: 0;
+
+  max-height: 500px;
+  overflow-y: auto;  
 }
 
 .user-section h2 {
@@ -475,13 +478,16 @@ a {
 
 /* Post links */
 
-.posts a {
+.posts a,
+.comments a, 
+.liked-posts a{
   color: #222;
   text-decoration: none;
   transition: color 0.2s;
 }
 
-.posts a:hover {
+.posts a:hover,
+.comments a:hover{
   color: #666;
   text-decoration: underline;
 }
@@ -496,35 +502,11 @@ a {
 }
 
 /* -------------------------------------------------------
-   EDIT Modal
+   EDIT Proifle
 ------------------------------------------------------- */
-.modal {
-  display: none;
-  position: fixed;
-  z-index: 1000;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-}
 
-.modal-content {
-  background: white;
-  width: 60%;
-  max-width: 500px;
-  margin: 8% auto;
-  padding: 20px;
-  border-radius: 12px;
-  position: relative;
-}
-
-.close {
-  position: absolute;
-  right: 15px;
-  top: 10px;
-  font-size: 28px;
-  cursor: pointer;
+.edit-profile {
+  margin-top: 50px;
 }
 
 .edit-profile h2 {
@@ -599,6 +581,132 @@ a {
   background: #222;
   color: white;
   cursor: pointer;
+}
+
+.form-error {
+    color: #d32f2f;
+    font-size: 14px;
+    margin-top: 5px;
+}
+
+/*Likes and dislikes*/
+
+.reaction-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.reaction-btn {
+  padding: 8px 14px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background: white;
+  cursor: pointer;
+}
+
+.reaction-btn:hover {
+  background: #f5f5f5;
+}
+
+.reaction-btn.active {
+  background: #e8f0fe;
+  border-color: #4285f4;
+  color: #1967d2;
+}
+
+/*filters*/
+.filters {
+  width: 100%;
+  margin-bottom: 1.5rem;
+}
+
+.filters form {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: var(--surface);
+  border: 1px solid #e2e2e2;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.filters input,
+.filters select {
+  height: 40px;
+  box-sizing: border-box;
+  padding: 0 0.75rem;
+  border: 1px solid #d5d5d5;
+  border-radius: 7px;
+  background: #fff;
+  color: #333;
+  font-size: 0.9rem;
+  outline: none;
+}
+
+.filters input:focus,
+.filters select:focus {
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.12);
+}
+
+.filters input {
+  flex: 1;
+  min-width: 180px;
+}
+
+.filters select {
+  min-width: 140px;
+  cursor: pointer;
+}
+
+.filters button {
+  height: 40px;
+  padding: 0 1.1rem;
+  border: none;
+  border-radius: 7px;
+  background: #4f46e5;
+  color: white;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  transition:
+    background 0.15s ease,
+    transform 0.1s ease;
+}
+
+.filters button:hover {
+  background: #4338ca;
+}
+
+.filters button:active {
+  transform: translateY(1px);
+}
+
+/*files*/
+.comment-files {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.file-attachment {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 9px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background: #f7f7f7;
+  color: #444;
+  text-decoration: none;
+  font-size: 13px;
+}
+
+.file-attachment:hover {
+  background: #eee;
 }
 
 

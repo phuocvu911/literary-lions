@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type PostListResp struct {
@@ -25,6 +26,29 @@ type CreatePostRequest struct {
 
 type CreatePostResp struct {
 	PostID int64 `json:"id"`
+}
+
+type FullComment struct {
+	ID        int64
+	Content   string
+	CreatedAt time.Time
+	Author    string
+	Likes     int
+	Dislikes  int	
+	CurrentReaction int
+	CommentFiles []CommentFile
+}
+
+type CommentFile struct {
+	ID          int64
+	Filename    string
+	ContentType string
+}
+
+type CommentWithReaction struct {
+	UserID int
+	CommentID int64
+	Value int
 }
 
 // NewPostForm renders the page where a signed-in user writes a post.
@@ -116,18 +140,29 @@ func (app *App) CreatePostFromForm(w http.ResponseWriter, r *http.Request, user 
 }
 
 func (app *App) ListPosts(w http.ResponseWriter, r *http.Request) {
+    query := r.URL.Query()
+
+	//get data from filters
+    filters := database.PostFilters{
+        Keyword:  strings.TrimSpace(query.Get("q")),
+        Category: query.Get("category"),
+        Sort:     query.Get("sort"),
+        Time:     query.Get("time"),
+    }
+
 	limit, page, offset, err := paginationParams(r)
 	if err != nil {
 		writeError(w, err, http.StatusBadRequest)
 		return
 	}
-	posts, err := database.ListPosts(app.db, limit, offset)
+
+	posts, err := database.ListPosts(app.db, filters, limit, offset)
 	if err != nil {
 		writeError(w, errors.New("failed to load posts"), http.StatusInternalServerError)
 		return
 	}
 
-	totalItems, err := database.CountPosts(app.db)
+	totalItems, err := database.CountPosts(app.db, filters)
 	if err != nil {
 		writeError(w, errors.New("failed to count posts"), http.StatusInternalServerError)
 		return
@@ -180,10 +215,62 @@ func (app *App) PostPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	//current reaction to the post
+	reactionToPost, err := app.getReactionToPost(r, post.ID)
+	if err != nil {
+		app.serverError(w, err)
+		return		
+	}		
+
+	fullComments := []FullComment{}
+
+	if app.currentUser(r) != nil {
+		//map commentFiles
+		filesToComments, err := app.getFilesToComments(comments)
+		if err != nil {
+			app.serverError(w, err)
+			return		
+		}
+
+		//current reactions to the comments
+		reactionsToComments, err := app.getReactionsToComments(r)
+		if err != nil {
+			app.serverError(w, err)
+			return		
+		}		
+
+		for _, c := range comments {
+			fullComment := FullComment{
+				ID: c.ID,
+				Content: c.Content,
+				CreatedAt: c.CreatedAt, 
+				Author: c.Author,
+				Likes: c.Likes,
+				Dislikes: c.Dislikes,
+				CurrentReaction: reactionsToComments[c.ID],
+				CommentFiles: filesToComments[c.ID],
+			}
+			fullComments = append(fullComments, fullComment)
+		}
+	} else {
+		for _, c := range comments {
+			fullComment := FullComment{
+				ID: c.ID,
+				Content: c.Content,
+				CreatedAt: c.CreatedAt, 
+				Author: c.Author,
+				Likes: c.Likes,
+				Dislikes: c.Dislikes,
+			}
+			fullComments = append(fullComments, fullComment)
+		}		
+	}
+
 	app.render(w, "post.html", map[string]any{
 		"User":     app.currentUser(r),
 		"Post":     post,
-		"Comments": comments,
+		"Comments": fullComments,
+		"ReactionToPost": reactionToPost,
 	})
 }
 
@@ -213,4 +300,92 @@ func (app *App) SearchPost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	writeJSON(w, http.StatusOK, PostListResp{posts, page, limit, totalItems})
+}
+
+//helpers 
+func (app *App) getFilesToComments(comments []models.Comment) (map[int64][]CommentFile, error) {
+	filesToComments := make(map[int64][]CommentFile)
+
+	for _, comment := range comments {
+		rows, err := app.db.Query(`
+			SELECT id, filename, content_type
+			FROM files
+			WHERE comment_id = ?
+		`, comment.ID)
+
+		if err != nil {
+			return nil, err
+		}
+		defer rows.Close()
+
+		var files []CommentFile
+
+		for rows.Next() {
+			var file CommentFile
+
+			if err := rows.Scan(&file.ID, &file.Filename, &file.ContentType); err != nil {
+				return nil, err
+			}
+			files = append(files, file)
+		}
+
+		if err := rows.Err(); err != nil {
+			return nil, err
+		}		
+
+		filesToComments[comment.ID] = files
+	}
+
+	return filesToComments, nil
+}
+
+func (app *App) getReactionsToComments(r *http.Request) (map[int64]int, error) {
+	reactionsToComments := make(map[int64]int)
+
+	rows, err:= app.db.Query(`
+		SELECT user_id, comment_id, value
+		FROM comment_reactions
+		WHERE user_id = ?
+	`, app.currentUser(r).ID)
+
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var commentsWithReaction []CommentWithReaction
+	for rows.Next() {
+		c := &CommentWithReaction{}
+		err := rows.Scan(&c.UserID, &c.CommentID, &c.Value)
+		if err != nil {
+			return nil, err
+		}
+		commentsWithReaction = append(commentsWithReaction, *c)
+	}		
+
+	for _, c := range commentsWithReaction {
+		reactionsToComments[c.CommentID] = c.Value
+	}
+
+	return reactionsToComments, nil
+}
+
+func (app *App) getReactionToPost(r *http.Request, postID int64) (int, error){
+	var reactionToPost int
+
+	if app.currentUser(r) != nil {
+		err := app.db.QueryRow(`
+			SELECT value
+			FROM post_reactions
+			WHERE user_id = ? AND post_id = ?
+		`, app.currentUser(r).ID, postID).Scan(&reactionToPost)
+
+		if err == sql.ErrNoRows {
+			reactionToPost = 0
+		} else if err != nil {
+			return 0, err
+		}	
+	}	
+
+	return reactionToPost, nil
 }
