@@ -134,18 +134,29 @@ func (app *App) CreatePostFromForm(w http.ResponseWriter, r *http.Request, user 
 }
 
 func (app *App) ListPosts(w http.ResponseWriter, r *http.Request) {
+    query := r.URL.Query()
+
+	//get data from filters
+    filters := database.PostFilters{
+        Keyword:  strings.TrimSpace(query.Get("q")),
+        Category: query.Get("category"),
+        Sort:     query.Get("sort"),
+        Time:     query.Get("time"),
+    }
+
 	limit, page, offset, err := paginationParams(r)
 	if err != nil {
 		writeError(w, err, http.StatusBadRequest)
 		return
 	}
-	posts, err := database.ListPosts(app.db, limit, offset)
+
+	posts, err := database.ListPosts(app.db, filters, limit, offset)
 	if err != nil {
 		writeError(w, errors.New("failed to load posts"), http.StatusInternalServerError)
 		return
 	}
 
-	totalItems, err := database.CountPosts(app.db)
+	totalItems, err := database.CountPosts(app.db, filters)
 	if err != nil {
 		writeError(w, errors.New("failed to count posts"), http.StatusInternalServerError)
 		return

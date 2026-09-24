@@ -33,11 +33,17 @@
   </aside>
 
   {{if .LoggedIn}}
-        <section class="feed">
+        <section class="feed">              
           <!-- latest posts -->
           <div class="feed-header">
-          <h1>Latest posts</h1>
-        </div>
+            <h1>Latest posts</h1>
+          </div>      
+
+           <!-- filter -->
+          <div class="filters">
+            {{template "filters"}}
+          </div>
+          
           {{range .Posts}}
           <article class="post-card">
           <div class="post-top">

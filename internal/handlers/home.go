@@ -5,6 +5,7 @@ import (
 	"lions/internal/models"
 	"net/http"
 	"time"
+	"strings"
 )
 
 type FullPost struct {
@@ -34,7 +35,17 @@ func (app *App) HandleHome(w http.ResponseWriter, r *http.Request) {
 		loggedIn = true
 	}
 
-	posts, err := database.ListPosts(app.db, 20, 0)
+	query := r.URL.Query()
+
+	// Get filters from URL
+	filters := database.PostFilters{
+		Keyword:  strings.TrimSpace(query.Get("q")),
+		Category: query.Get("category"),
+		Sort:     query.Get("sort"),
+		Time:     query.Get("time"),
+	}	
+
+	posts, err := database.ListPosts(app.db, filters, 20, 0)
 	if err != nil {
 		app.serverError(w, err)
 		return
