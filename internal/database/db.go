@@ -14,7 +14,8 @@ CREATE TABLE IF NOT EXISTS users (
 	username      TEXT NOT NULL UNIQUE COLLATE NOCASE,
 	password_hash TEXT NOT NULL,
 	created_at    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-	profile_image BLOB
+	profile_image BLOB,
+	image_version INTEGER NOT NULL DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS sessions (

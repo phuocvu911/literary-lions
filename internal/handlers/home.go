@@ -62,6 +62,7 @@ func (app *App) HandleHome(w http.ResponseWriter, r *http.Request) {
 		`, app.currentUser(r).ID)
 
 		if err != nil {
+			app.serverError(w, err)
 			return
 		}
 		defer rows.Close()
@@ -71,9 +72,15 @@ func (app *App) HandleHome(w http.ResponseWriter, r *http.Request) {
 			p := &PostWithReaction{}
 			err := rows.Scan(&p.UserID, &p.PostID, &p.Value)
 			if err != nil {
+				app.serverError(w, err)
 				return
 			}
 			postsWithReaction = append(postsWithReaction, *p)
+		}		
+
+		if err = rows.Err(); err != nil {
+			app.serverError(w, err)
+			return
 		}		
 
 		for _, p := range postsWithReaction {

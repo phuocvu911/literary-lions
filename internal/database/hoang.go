@@ -51,10 +51,10 @@ func DeleteSession(db *sql.DB, id string) error {
 func UserBySession(db *sql.DB, sessionID string) (*models.User, error) {
 	u := &models.User{}
 	err := db.QueryRow(`
-		SELECT u.id, u.email, u.username, u.created_at
+		SELECT u.id, u.email, u.username, u.created_at, u.image_version
 		FROM sessions s JOIN users u ON u.id = s.user_id
 		WHERE s.id = ? AND s.expires_at > CURRENT_TIMESTAMP`,
-		sessionID).Scan(&u.ID, &u.Email, &u.Username, &u.CreatedAt)
+		sessionID).Scan(&u.ID, &u.Email, &u.Username, &u.CreatedAt, &u.ProfileImageVersion)
 	if err != nil {
 		return nil, err
 	}

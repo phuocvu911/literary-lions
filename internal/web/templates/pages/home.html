@@ -109,6 +109,20 @@
           <span>Dislikes: {{.Dislikes}}</span>
           <span>Comments: {{.CommentCount}}</span>
         </div>
+
+        <div class="post-stats">
+          <div id="reaction-buttons-posts"  class="reaction-buttons-posts">
+            <button type="button" class="reaction-btn" id="likePostBtn"> 
+              👍
+              <span id="likePostCount">{{.Likes}}</span>
+            </button>
+            <button type="button" class="reaction-btn" id="dislikePostBtn"> 
+              👎 
+              <span id="dislikePostCount">{{.Dislikes}}</span>
+            </button>
+          </div>
+          <span>Comments: {{.CommentCount}}</span>
+        </div>        
           </article>
           {{end}}
         </section>

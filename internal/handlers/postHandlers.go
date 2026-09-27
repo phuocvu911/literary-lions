@@ -324,6 +324,7 @@ func (app *App) getFilesToComments(comments []models.Comment) (map[int64][]Comme
 			var file CommentFile
 
 			if err := rows.Scan(&file.ID, &file.Filename, &file.ContentType); err != nil {
+
 				return nil, err
 			}
 			files = append(files, file)
@@ -362,6 +363,10 @@ func (app *App) getReactionsToComments(r *http.Request) (map[int64]int, error) {
 		}
 		commentsWithReaction = append(commentsWithReaction, *c)
 	}		
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}			
 
 	for _, c := range commentsWithReaction {
 		reactionsToComments[c.CommentID] = c.Value

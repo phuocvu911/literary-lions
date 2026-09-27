@@ -4,7 +4,8 @@ import (
 	"net/http"
     "net/mail"
     "lions/internal/models"
-    "lions/internal/database"
+    "database/sql"
+    "errors"
     "io"
     "fmt"	
     "strings"
@@ -44,7 +45,7 @@ func (app *App) ProfileHandler(w http.ResponseWriter, r *http.Request) {
     row := app.db.QueryRow(getUser, ID)
     user := models.User{}
 
-    err := row.Scan(&user.ID,&user.Email,&user.Username, &user.PasswordHash, &user.CreatedAt, &user.ProfileImage)
+    err := row.Scan(&user.ID,&user.Email,&user.Username, &user.PasswordHash, &user.CreatedAt, &user.ProfileImage, &user.ProfileImageVersion)
     if err != nil {
         fmt.Println(err)
         return 
@@ -70,7 +71,9 @@ func (app *App) ProfileHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *App) ProfileUploadHandler(w http.ResponseWriter, r *http.Request) {
-    if app.currentUser(r) == nil {
+    user := app.currentUser(r)
+
+    if user == nil {
         http.Redirect(w, r, "/", http.StatusSeeOther)
         return
     }
@@ -95,13 +98,12 @@ func (app *App) ProfileUploadHandler(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    ID := app.currentUser(r).ID
-
     _, err = app.db.Exec(`
         UPDATE users
-        SET profile_image = ?
+        SET profile_image = ?,
+            image_version = image_version + 1
         WHERE id = ?
-    `, imageData, ID)
+    `, imageData, user.ID)
 
     if err != nil {
         http.Error(w, "Could not save image", http.StatusInternalServerError)
@@ -130,80 +132,55 @@ func (app *App) ProfileUpdateHandler(w http.ResponseWriter, r *http.Request) {
 
 		app.render(w, "edit-profile.html", data)
 
-	case http.MethodPost:
-		// Process the form
-		username := strings.TrimSpace(r.FormValue("username"))
-		email := strings.TrimSpace(r.FormValue("email"))
+    case http.MethodPost:
+        username := strings.TrimSpace(r.FormValue("username"))
+        email := strings.TrimSpace(r.FormValue("email"))
         currentPassword := r.FormValue("current-password")
-		newPassword := r.FormValue("new-password")
+        newPassword := r.FormValue("new-password")
 
-        //fail scenarios closure
-        fail := func(msg string) {
-            w.WriteHeader(http.StatusUnprocessableEntity)
+        if err := app.ValidateInput(user, username, email, currentPassword, newPassword); err != nil {
+            if errors.Is(err, sql.ErrNoRows) {
+                app.serverError(w, err)
+                return
+            }
+            
             app.render(w, "edit-profile.html", EditPageData{
                 User:     user,
                 UserName: username,
                 Email:    email,
-                Error:    msg,
+                Error:    err.Error(),
             })
-        }
-
-        //validate input
-        if _, err := mail.ParseAddress(email); err != nil || len(email) > maxCredentials {
-            fail("Please enter a valid email address.")
-            return
-        }
-        if len(username) < 3 || len(username) > maxCredentials || strings.ContainsAny(username, " \t\v\n@") {
-            fail("Username must be at least 3 characters, with no spaces or '@'.")
             return
         }
 
-        //check email and password match
-        userCheck, errtwo := database.UserByEmail(app.db, email)
-        if errtwo == nil {
-            if isRightPassword := app.hasher.Verify(currentPassword, userCheck.PasswordHash); !isRightPassword {
-                fail("Email or password is incorrect.")
+        var err error
+
+        if newPassword == "" {
+            _, err = app.db.Exec(`
+                UPDATE users
+                SET username = ?, email = ?
+                WHERE id = ?
+            `, username, email, user.ID)
+        } else {
+            hash, hashErr := app.hasher.Hash(newPassword)
+            if hashErr != nil {
+                app.serverError(w, hashErr)
                 return
             }
+
+            _, err = app.db.Exec(`
+                UPDATE users
+                SET username = ?, email = ?, password_hash = ?
+                WHERE id = ?
+            `, username, email, hash, user.ID)
         }
-        
-        if newPassword != "" {
-            if len(newPassword) < 8 || len(newPassword) > maxCredentials {
-                fail("Password must be at least 8 characters.")
-                return
-            }
-        }    
 
-		var err error
+        if err != nil {
+            app.serverError(w, err)
+            return
+        }
 
-		if strings.TrimSpace(newPassword) == "" {
-			_, err = app.db.Exec(`
-				UPDATE users
-				SET username = ?, email = ?
-				WHERE id = ?
-			`, username, email, user.ID)
-		} else {
-			hash, hashErr := app.hasher.Hash(newPassword)
-			if hashErr != nil {
-				app.serverError(w, hashErr)
-				return
-			}
-
-			_, err = app.db.Exec(`
-				UPDATE users
-				SET username = ?, email = ?, password_hash = ?
-				WHERE id = ?
-			`, username, email, hash, user.ID)
-		}
-
-		if err != nil {
-			fmt.Println(err)
-			http.Error(w, "Could not update the profile", http.StatusInternalServerError)
-			return
-		}
-
-		// Redirect once done
-		http.Redirect(w, r, "/profile", http.StatusSeeOther)
+        http.Redirect(w, r, "/profile", http.StatusSeeOther)
 
 	default:
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -211,19 +188,20 @@ func (app *App) ProfileUpdateHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *App) ProfileImageHandler(w http.ResponseWriter, r *http.Request) {
-    if app.currentUser(r) == nil {
+    user := app.currentUser(r)
+
+    if user == nil {
         http.Redirect(w, r, "/", http.StatusSeeOther)
         return
     }    
 
-    ID := app.currentUser(r).ID
     var imageData []byte
 
     err := app.db.QueryRow(`
         SELECT profile_image
         FROM users
         WHERE id = ?
-    `, ID).Scan(&imageData)
+    `, user.ID).Scan(&imageData)
 
     if err != nil {
         fmt.Println("Database error:", err)
@@ -235,7 +213,6 @@ func (app *App) ProfileImageHandler(w http.ResponseWriter, r *http.Request) {
         http.ServeFile(w, r, "internal/web/static/profile.jpeg")
         return
     }
-
     
     w.Header().Set("Content-Type", "image/jpeg")
     w.Write(imageData)
@@ -384,4 +361,78 @@ func (app *App) GetUserComments(userId int64) []*models.Comment{
     }
 
     return comments
+}
+
+func (app *App) ValidateInput(user *models.User,username, email, currentPassword, newPassword string) error {
+    // Username
+    if len(username) < 3 || len(username) > maxCredentials || strings.ContainsAny(username, " \t\v\n@") {
+        return errors.New("Username must be at least 3 characters, with no spaces or '@'.")
+    }
+
+    if username != user.Username {
+        var existing string
+
+        err := app.db.QueryRow(`SELECT username FROM users WHERE username = ? AND id != ?`, username, user.ID).Scan(&existing)
+
+        if err == nil {
+            return errors.New("The username is already in use. Please choose a new one.")
+        }
+
+        if !errors.Is(err, sql.ErrNoRows) {
+            return err
+        }
+    }
+
+    // Email
+    if email == "" || len(email) > maxCredentials {
+        return errors.New("Please enter a valid email address.")
+    }
+
+    parsed, err := mail.ParseAddress(email)
+    if err != nil || parsed.Address != email {
+        return errors.New("Please enter a valid email address.")
+    }
+
+    if email != user.Email {
+        var existing string
+
+        err := app.db.QueryRow(`SELECT email FROM users WHERE email = ? AND id != ?`,email, user.ID).Scan(&existing)
+
+        if err == nil {
+            return errors.New("The email is already in use. Please choose a new one.")
+        }
+
+        if !errors.Is(err, sql.ErrNoRows) {
+            return err
+        }
+    }
+
+    // Current password
+    if currentPassword == "" {
+        return errors.New("Please enter your current password.")
+    }
+
+    var passwordHash string
+    err = app.db.QueryRow(`SELECT password_hash FROM users WHERE id = ?`, user.ID).Scan(&passwordHash)
+
+    if err != nil {
+        return fmt.Errorf("failed to retrieve password hash: %w", err)
+    }
+
+    if !app.hasher.Verify(currentPassword, passwordHash) {
+        return errors.New("Current password is incorrect.")
+    }
+
+    // New password
+    if newPassword != "" {
+        if newPassword == currentPassword {
+            return errors.New("New password should be different from your old password.")
+        }
+
+        if len(newPassword) < 8 || len(newPassword) > maxCredentials {
+            return errors.New("Password must be at least 8 characters.")
+        }
+    }
+
+    return nil
 }
