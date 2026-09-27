@@ -10,6 +10,7 @@ type User struct {
 	PasswordHash string
 	CreatedAt    time.Time
 	ProfileImage []byte
+	ProfileImageVersion int64
 }
 
 // Category represents a category of posts, has exactly same fields as the table category in the database
@@ -41,4 +42,14 @@ type Comment struct {
 	Author    string
 	Likes     int
 	Dislikes  int
+}
+
+// File represented in a comment section
+type File struct {
+	ID          int64
+	CommentID   int64
+	Name        string
+	ContentType string
+	Data        []byte
+	CreatedAt   time.Time
 }

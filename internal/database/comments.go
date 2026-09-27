@@ -12,7 +12,7 @@ import (
 var listCommentsQuery string
 
 // CreateComment returns the new comment ID or an error.
-func CreateComment(db *sql.DB, userID int64, postID int64, content string) (int64, error) {
+func CreateComment(db *sql.DB, userID int64, postID int64, content string, fileContent models.File) (int64, error) {
 	query := "INSERT INTO comments (user_id, post_id, content) VALUES (?,?,?)"
 	result, err := db.Exec(query, userID, postID, content)
 	if err != nil {
@@ -22,6 +22,17 @@ func CreateComment(db *sql.DB, userID int64, postID int64, content string) (int6
 	if err != nil {
 		return 0, err
 	}
+
+	//insert filedata to db
+	if len(fileContent.Data) > 0 {
+		sql := `INSERT INTO files (comment_id, filename, content_type, data) 
+				VALUES (?, ?, ?, ?);`
+		if _, err := db.Exec(sql, CommentID, fileContent.Name, fileContent.ContentType, fileContent.Data); err != nil {
+			fmt.Println(err)
+			return 0, err
+		}
+	}
+
 	return CommentID, nil
 
 }

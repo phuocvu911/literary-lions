@@ -9,6 +9,13 @@ import (
 	"lions/internal/models"
 )
 
+type PostFilters struct {
+	Keyword  string
+	Category string
+	Sort     string
+	Time     string
+}
+
 //go:embed sql/list_post.sql
 var listPostsQuery string
 
@@ -17,6 +24,9 @@ var getPostQuery string
 
 //go:embed sql/search_posts.sql
 var searchQuery string
+
+//go:embed sql/get_post_filter.sql
+var getAllPostQuery string
 
 // create post return postid. Failure return 0, err
 func CreatePost(db *sql.DB, userID int64, title string, content string, categoryIDs []int64) (int64, error) {
@@ -53,47 +63,62 @@ func CreatePost(db *sql.DB, userID int64, title string, content string, category
 }
 
 // ListPosts returns one page of posts ordered from newest to oldest.
-func ListPosts(db *sql.DB, limit, offset int) ([]models.Post, error) {
+func ListPosts(db *sql.DB, filters PostFilters,	limit int, offset int) ([]models.Post, error) {
+
 	if limit <= 0 || offset < 0 {
 		return nil, fmt.Errorf("invalid pagination values")
 	}
 
-	allPosts := []models.Post{}
+	//get everything related to posts
+	query := getAllPostQuery
 
-	rows, err := db.Query(listPostsQuery, limit, offset)
+	where, args := buildPostFilters(filters)
+	query += where
+
+	query += `
+		GROUP BY
+			posts.id,
+			posts.title,
+			posts.content,
+			posts.created_at,
+			users.username
+	`
+
+	query += " ORDER BY " + postOrderBy(filters.Sort)
+
+	query += " LIMIT ? OFFSET ?"
+	args = append(args, limit, offset)
+
+	rows, err := db.Query(query, args...)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	for rows.Next() {
-		var post models.Post
-		if err = rows.Scan(
-			&post.ID,
-			&post.Title,
-			&post.Content,
-			&post.CreatedAt,
-			&post.Author,
-			&post.CommentCount,
-			&post.Likes,
-			&post.Dislikes,
-			&post.CategoryNames,
-		); err != nil {
-			return nil, err
-		}
-		allPosts = append(allPosts, post)
-	}
-	if err := rows.Err(); err != nil { // Check that iteration did not stop because of an error.
+	posts, err := scanPosts(rows)
+	if err != nil {
 		return nil, err
 	}
 
-	return populatePostCategories(db, allPosts)
+	return populatePostCategories(db, posts)
 }
 
 // CountPosts returns the total number of posts before pagination.
-func CountPosts(db *sql.DB) (int, error) {
+func CountPosts(db *sql.DB, filters PostFilters) (int, error) {
+	query := `
+		SELECT COUNT(DISTINCT posts.id)
+		FROM posts
+
+		LEFT JOIN post_categories
+			ON post_categories.post_id = posts.id
+	`
+
+	where, args := buildPostFilters(filters)
+	query += where
+
 	var total int
-	err := db.QueryRow(`SELECT COUNT(*) FROM posts`).Scan(&total)
+
+	err := db.QueryRow(query, args...).Scan(&total)
 	if err != nil {
 		return 0, err
 	}
@@ -224,4 +249,113 @@ func CountSearchPosts(db *sql.DB, keyWord string) (int, error) {
 	}
 
 	return total, nil
+}
+
+//helpers for filters
+func buildPostFilters(filters PostFilters) (string, []any) {
+	var conditions []string
+	var args []any
+
+	if filters.Keyword != "" {
+		conditions = append(conditions, `
+			(
+				posts.title LIKE ?
+				OR posts.content LIKE ?
+			)
+		`)
+
+		search := "%" + filters.Keyword + "%"
+		args = append(args, search, search)
+	}
+
+	if filters.Category != "" {
+		conditions = append(
+			conditions,
+			"post_categories.category_id = ?",
+		)
+
+		args = append(args, filters.Category)
+	}
+
+	switch filters.Time {
+	case "today":
+		conditions = append(
+			conditions,
+			"posts.created_at >= datetime('now', '-1 day')",
+		)
+
+	case "week":
+		conditions = append(
+			conditions,
+			"posts.created_at >= datetime('now', '-7 days')",
+		)
+
+	case "month":
+		conditions = append(
+			conditions,
+			"posts.created_at >= datetime('now', '-1 month')",
+		)
+
+	case "year":
+		conditions = append(
+			conditions,
+			"posts.created_at >= datetime('now', '-1 year')",
+		)
+	}
+
+	if len(conditions) == 0 {
+		return "", args
+	}
+
+	return " WHERE " + strings.Join(conditions, " AND "), args
+}
+
+func postOrderBy(sort string) string {
+	switch sort {
+	case "oldest":
+		return "posts.created_at ASC"
+
+	case "most_liked":
+		return "likes DESC"
+
+	case "most_commented":
+		return "comment_count DESC"
+
+	case "newest", "":
+		return "posts.created_at DESC"
+
+	default:
+		return "posts.created_at DESC"
+	}
+}
+
+func scanPosts(rows *sql.Rows) ([]models.Post, error) {
+	var posts []models.Post
+
+	for rows.Next() {
+		var post models.Post
+
+		err := rows.Scan(
+			&post.ID,
+			&post.Title,
+			&post.Content,
+			&post.CreatedAt,
+			&post.Author,
+			&post.CommentCount,
+			&post.Likes,
+			&post.Dislikes,
+			&post.CategoryNames,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		posts = append(posts, post)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return posts, nil
 }
