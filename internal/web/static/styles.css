@@ -895,6 +895,12 @@ a {
   border-bottom: 1px solid var(--border);
 }
 
+#comments > form {
+  padding-bottom: 1.2rem;
+  margin-bottom: 1.2rem;
+  border-bottom: 1px solid var(--border);
+}
+
 .post-stats {
   display: flex;
   align-items: center;
