@@ -31,8 +31,8 @@
       </div>
       <a class="reaction-btn" href="#comments">💬 {{.Post.CommentCount}}</a>
     {{else}}
-      <span>Likes: {{.Post.Likes}}</span>
-      <span>Dislikes: {{.Post.Dislikes}}</span>
+      <span class="reaction-btn">👍 {{.Post.Likes}}</span>
+      <span class="reaction-btn">👎 {{.Post.Dislikes}}</span>
       <a class="reaction-btn" href="#comments">💬 {{.Post.CommentCount}}</a>
     {{end}}
   </div>
@@ -92,8 +92,8 @@
         </div>
         <p>{{.Content}}</p>
         <div class="post-stats">
-          <span>Likes: {{.Likes}}</span>
-          <span>Dislikes: {{.Dislikes}}</span>
+          <span class="reaction-btn">👍 {{.Likes}}</span>
+          <span class="reaction-btn">👎 {{.Dislikes}}</span>
         </div>
       </article>
     {{else}}
