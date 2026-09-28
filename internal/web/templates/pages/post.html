@@ -29,16 +29,16 @@
           <span id="dislikePostCount">{{.Post.Dislikes}}</span>
         </button>
       </div>
-      <span>Comments: {{.Post.CommentCount}}</span>
+      <a class="reaction-btn" href="#comments">💬 {{.Post.CommentCount}}</a>
     {{else}}
       <span>Likes: {{.Post.Likes}}</span>
       <span>Dislikes: {{.Post.Dislikes}}</span>
-      <span>Comments: {{.Post.CommentCount}}</span>
+      <a class="reaction-btn" href="#comments">💬 {{.Post.CommentCount}}</a>
     {{end}}
   </div>
 </article>
 
-<section class="comments">
+<section class="comments" id="comments">
   <h2>Comments</h2>
   {{if .User}}
     <form method="post" action="/post/{{.Post.ID}}/comments" enctype="multipart/form-data">
