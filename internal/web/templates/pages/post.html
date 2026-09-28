@@ -29,28 +29,23 @@
           <span id="dislikePostCount">{{.Post.Dislikes}}</span>
         </button>
       </div>
-      <span>Comments: {{.Post.CommentCount}}</span>
+      <a class="reaction-btn" href="#comments">💬 {{.Post.CommentCount}}</a>
     {{else}}
-      <span>Likes: {{.Post.Likes}}</span>
-      <span>Dislikes: {{.Post.Dislikes}}</span>
-      <span>Comments: {{.Post.CommentCount}}</span>
+      <span class="reaction-btn">👍 {{.Post.Likes}}</span>
+      <span class="reaction-btn">👎 {{.Post.Dislikes}}</span>
+      <a class="reaction-btn" href="#comments">💬 {{.Post.CommentCount}}</a>
     {{end}}
   </div>
 </article>
 
-<section class="comments">
+<section class="comments" id="comments">
   <h2>Comments</h2>
   {{if .User}}
     <form method="post" action="/post/{{.Post.ID}}/comments" enctype="multipart/form-data">
-      <label for="content">Add a comment</label>
+      <label for="content">Add a comment:</label>
       <textarea id="content" name="content" rows="4" required></textarea>
       <label for="file">Attach a file (optional)</label>
-        <input
-          type="file"
-          id="file"
-          name="file"
-          accept="image/jpeg,image/png,image/webp,application/pdf">
-
+      <input type="file" id="file" name="file" accept="image/jpeg,image/png,image/webp,application/pdf">
       <button type="submit" class="btn btn-primary">Post comment</button>
     </form>
   {{else}}
@@ -62,7 +57,7 @@
       <article class="comment">
         <div class="post-meta">
           <span>{{.Author}}</span>
-          <time>{{.CreatedAt.Format "02 Jan 2006"}}</time>
+          <time>{{.CreatedAt.Format "02-01-2006"}}</time>
         </div>
         <p>{{.Content}}</p>
         <div class="post-stats">
@@ -93,12 +88,12 @@
       <article class="comment">
         <div class="post-meta">
           <span>{{.Author}}</span>
-          <time>{{.CreatedAt.Format "02 Jan 2006"}}</time>
+          <time>{{.CreatedAt.Format "02-01-2006"}}</time>
         </div>
         <p>{{.Content}}</p>
         <div class="post-stats">
-          <span>Likes: {{.Likes}}</span>
-          <span>Dislikes: {{.Dislikes}}</span>
+          <span class="reaction-btn">👍 {{.Likes}}</span>
+          <span class="reaction-btn">👎 {{.Dislikes}}</span>
         </div>
       </article>
     {{else}}
