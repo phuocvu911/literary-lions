@@ -75,7 +75,7 @@
               <span id="dislikePostCount">{{.Dislikes}}</span>
             </button>
           </div>
-          <span>Comments: {{.CommentCount}}</span>
+          <a class="reaction-btn" href="/post/{{.ID}}">💬 {{.CommentCount}}</a>
         </div>
       </article>
           {{end}}
@@ -106,12 +106,6 @@
         <p class="post-content">{{.Content}}</p>
 
         <div class="post-stats">
-          <span>Likes: {{.Likes}}</span>
-          <span>Dislikes: {{.Dislikes}}</span>
-          <span>Comments: {{.CommentCount}}</span>
-        </div>
-
-        <div class="post-stats">
           <div id="reaction-buttons-posts"  class="reaction-buttons-posts">
             <button type="button" class="reaction-btn" id="likePostBtn"> 
               👍
@@ -122,7 +116,7 @@
               <span id="dislikePostCount">{{.Dislikes}}</span>
             </button>
           </div>
-          <span>Comments: {{.CommentCount}}</span>
+          <a class="reaction-btn" href="/post/{{.ID}}">💬 {{.CommentCount}}</a>
         </div>        
           </article>
           {{end}}

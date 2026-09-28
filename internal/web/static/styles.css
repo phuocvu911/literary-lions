@@ -897,10 +897,30 @@ a {
 
 .post-stats {
   display: flex;
+  align-items: center;
   flex-wrap: wrap;
   gap: 0.8rem;
   color: var(--muted);
   font-size: 0.8rem;
+}
+
+.post-stats .reaction-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  font: inherit;
+  color: inherit;
+  text-decoration: none;
+}
+
+.post-stats,
+.post-stats .reaction-buttons-posts {
+  gap: 4px;
+}
+
+.post-stats .reaction-buttons-posts {
+  display: flex;
 }
 
 @media (max-width: 600px) {
